@@ -126,27 +126,33 @@ export type Database = {
       }
       subjects: {
         Row: {
+          category: string
           code: string
           created_at: string
           id: string
           is_designated: boolean
           name: string
+          requirement_type: string
           sort_order: number
         }
         Insert: {
+          category?: string
           code: string
           created_at?: string
           id?: string
           is_designated?: boolean
           name: string
+          requirement_type?: string
           sort_order?: number
         }
         Update: {
+          category?: string
           code?: string
           created_at?: string
           id?: string
           is_designated?: boolean
           name?: string
+          requirement_type?: string
           sort_order?: number
         }
         Relationships: []
