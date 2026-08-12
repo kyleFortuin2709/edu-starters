@@ -98,6 +98,7 @@ function CourseDetailPage() {
 
   const tone = STATUS_TONE[eligibility.status];
   const checks = eligibility.bestSet?.checks ?? [];
+  const unmet = outstandingChecks(eligibility);
   const results = eligibility.apsCalculation?.subjects ?? [];
 
   return (
