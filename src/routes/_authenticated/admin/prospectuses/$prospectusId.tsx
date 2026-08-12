@@ -17,6 +17,8 @@ import { IngestionStatusPill } from "@/components/IngestionStatusPill";
 import { SelectField } from "@/components/SelectField";
 import { TextField } from "@/components/TextField";
 import { extractProspectus } from "@/lib/prospectus-extract.functions";
+import { ApsRuleReviewCard } from "@/components/ApsRuleReviewCard";
+import { findMissingInformation } from "@/lib/prospectus-publish";
 
 export const Route = createFileRoute("/_authenticated/admin/prospectuses/$prospectusId")({
   head: () => ({
@@ -315,14 +317,13 @@ function ProspectusDetailPage() {
               </ul>
             </div>
           ) : null}
-          <div className="mt-5">
-            <h3 className="text-sm font-semibold">APS calculation methodology found</h3>
-            <p className="mt-2 whitespace-pre-wrap rounded-2xl border border-border bg-background p-4 text-sm text-muted-foreground">
-              {doc.aps_methodology_text ?? "No APS methodology was found in this document."}
-            </p>
-          </div>
         </div>
       )}
+
+      <ApsRuleReviewCard
+        doc={doc}
+        onRuleLinked={(ruleId) => setDoc((prev) => (prev ? { ...prev, aps_rule_id: ruleId } : prev))}
+      />
 
       <div className="mt-10 rounded-[2rem] border border-border bg-card p-6 md:p-8">
         <h2 className="font-display text-2xl font-semibold">Staged courses</h2>
@@ -377,6 +378,11 @@ function ProspectusDetailPage() {
                       .filter(Boolean)
                       .join(" · ") || "No details captured yet"}
                   </p>
+                  {findMissingInformation(s).length > 0 && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Missing: {findMissingInformation(s).map((m) => m.label).join(", ")}
+                    </p>
+                  )}
                 </div>
                 <Link
                   to="/admin/staged/$stagedId"

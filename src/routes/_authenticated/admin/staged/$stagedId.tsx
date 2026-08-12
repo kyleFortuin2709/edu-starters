@@ -11,6 +11,11 @@ import {
 import { IngestionStatusPill } from "@/components/IngestionStatusPill";
 import { SelectField } from "@/components/SelectField";
 import { TextField } from "@/components/TextField";
+import {
+  findMissingInformation,
+  hasBlockingGaps,
+  publishStagedCourse,
+} from "@/lib/prospectus-publish";
 
 export const Route = createFileRoute("/_authenticated/admin/staged/$stagedId")({
   head: () => ({
@@ -67,6 +72,8 @@ function StagedCoursePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [warnings, setWarnings] = useState<string[]>([]);
+  const [publishing, setPublishing] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -159,6 +166,45 @@ function StagedCoursePage() {
     }
   }
 
+  async function setReviewStatus(status: IngestionStatus, note: string) {
+    if (!record) return;
+    setSaving(true);
+    setError("");
+    try {
+      await updateStagedCourse(record.id, { status });
+      setRecord({ ...record, status });
+      setForm((prev) => (prev ? { ...prev, status } : prev));
+      setMessage(note);
+    } catch {
+      setError("That review decision couldn't be saved. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function publish() {
+    if (!record) return;
+    setPublishing(true);
+    setError("");
+    setMessage("");
+    setWarnings([]);
+    try {
+      const result = await publishStagedCourse(record);
+      setRecord({ ...record, status: "published", published_course_id: result.courseId });
+      setForm((prev) => (prev ? { ...prev, status: "published" } : prev));
+      setWarnings(result.warnings);
+      setMessage("Published to the live course database. The staged record is kept as the source.");
+    } catch (err) {
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : "This record couldn't be published. Please try again.",
+      );
+    } finally {
+      setPublishing(false);
+    }
+  }
+
   if (loading) return <p className="mt-10 text-sm text-muted-foreground">Loading staged course…</p>;
   if (!record || !form)
     return (
@@ -199,6 +245,48 @@ function StagedCoursePage() {
           {message}
         </p>
       )}
+
+      {warnings.length > 0 && (
+        <div className="mt-4 rounded-2xl border border-border bg-card p-4 text-sm">
+          <h2 className="font-semibold">Published with notes</h2>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
+            {warnings.map((w) => (
+              <li key={w}>{w}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="mt-6 rounded-[2rem] border border-border bg-card p-6 md:p-8">
+        <h2 className="font-display text-2xl font-semibold">Completeness check</h2>
+        {findMissingInformation(record).length === 0 ? (
+          <p className="mt-2 text-sm text-muted-foreground">
+            Every field we check for is filled in. Confirm the detail against the PDF before
+            approving.
+          </p>
+        ) : (
+          <>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Missing information found in this extracted course:
+            </p>
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {findMissingInformation(record).map((item) => (
+                <li
+                  key={item.label}
+                  className={
+                    item.blocking
+                      ? "rounded-full border border-destructive/40 bg-destructive/5 px-3 py-1 text-xs font-semibold text-destructive"
+                      : "rounded-full border border-border px-3 py-1 text-xs font-semibold text-muted-foreground"
+                  }
+                >
+                  {item.label}
+                  {item.blocking ? " — required" : ""}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
 
       {record.extracted_payload?.source === "ai_extraction" && (
         <div className="mt-6 rounded-[2rem] border border-border bg-card p-6 md:p-8">
@@ -362,6 +450,66 @@ function StagedCoursePage() {
           </button>
         </div>
       </form>
+
+      <div className="mt-8 rounded-[2rem] border border-border bg-card p-6 md:p-8">
+        <h2 className="font-display text-2xl font-semibold">Review decision</h2>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+          Approve a record once every field has been checked against the PDF. Rejecting sends it
+          back for more work. Publishing copies it into the live course database, where the
+          eligibility engine can use it — the staged record stays as the source of truth.
+        </p>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <button
+            type="button"
+            disabled={saving || publishing || hasBlockingGaps(record) || record.status === "published"}
+            onClick={() =>
+              setReviewStatus("approved", "Approved. It can now be published to the live database.")
+            }
+            className="rounded-full bg-foreground px-6 py-3 text-sm font-semibold text-background hover:bg-primary disabled:opacity-60"
+          >
+            Approve record
+          </button>
+          <button
+            type="button"
+            disabled={saving || publishing || record.status === "published"}
+            onClick={() =>
+              setReviewStatus("review_required", "Rejected. This record needs more work.")
+            }
+            className="rounded-full border border-border px-6 py-3 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
+          >
+            Reject — needs more work
+          </button>
+          <button
+            type="button"
+            disabled={saving || publishing || record.status !== "approved"}
+            onClick={publish}
+            className="rounded-full border border-success/50 bg-success/10 px-6 py-3 text-sm font-semibold text-foreground hover:bg-success/20 disabled:opacity-60"
+          >
+            {publishing ? "Publishing…" : "Publish to live database"}
+          </button>
+        </div>
+        {hasBlockingGaps(record) && (
+          <p className="mt-3 text-xs text-destructive">
+            Fill in the required fields above before this record can be approved.
+          </p>
+        )}
+        {record.status !== "approved" && record.status !== "published" && (
+          <p className="mt-3 text-xs text-muted-foreground">
+            Only approved records can be published.
+          </p>
+        )}
+        {record.published_course_id && (
+          <p className="mt-4 text-sm">
+            <Link
+              to="/admin/courses/$courseId"
+              params={{ courseId: record.published_course_id }}
+              className="font-semibold underline"
+            >
+              View the live course this record created
+            </Link>
+          </p>
+        )}
+      </div>
     </section>
   );
 }

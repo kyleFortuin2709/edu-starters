@@ -456,6 +456,7 @@ export type Database = {
         Row: {
           academic_year: string | null
           aps_methodology_text: string | null
+          aps_rule_id: string | null
           created_at: string
           error_message: string | null
           extracted_at: string | null
@@ -476,6 +477,7 @@ export type Database = {
         Insert: {
           academic_year?: string | null
           aps_methodology_text?: string | null
+          aps_rule_id?: string | null
           created_at?: string
           error_message?: string | null
           extracted_at?: string | null
@@ -496,6 +498,7 @@ export type Database = {
         Update: {
           academic_year?: string | null
           aps_methodology_text?: string | null
+          aps_rule_id?: string | null
           created_at?: string
           error_message?: string | null
           extracted_at?: string | null
@@ -514,6 +517,13 @@ export type Database = {
           uploaded_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "prospectus_documents_aps_rule_id_fkey"
+            columns: ["aps_rule_id"]
+            isOneToOne: false
+            referencedRelation: "aps_calculation_rules"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "prospectus_documents_university_id_fkey"
             columns: ["university_id"]
