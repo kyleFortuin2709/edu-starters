@@ -25,17 +25,17 @@ export const Route = createFileRoute("/")({
 
 const previewCourses: Course[] = [
   {
-    institution: "Wits University",
+    institution: "Demo — Example University",
     name: "BSc Computer Science",
-    summary: "Entry point score met. You have a high probability of acceptance.",
+    summary: "Example: you meet the published entry requirement. This is not a guarantee of admission.",
     aps: 42,
     delta: "+5 Above",
     status: "qualify",
   },
   {
-    institution: "UP — Tukkies",
+    institution: "Demo — Example University",
     name: "BA Law",
-    summary: "Just 2 points shy. Consider a re-mark or an extended programme.",
+    summary: "Example: you are below the published requirement. Explore options like a re-mark or extended programme.",
     aps: 34,
     delta: "-2 Points",
     status: "almost",
