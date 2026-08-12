@@ -14,6 +14,248 @@ export type Database = {
   }
   public: {
     Tables: {
+      course_requirement_rules: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_required: boolean
+          metadata: Json
+          min_achievement_level: number | null
+          min_aps: number | null
+          min_count: number | null
+          min_percentage: number | null
+          requirement_set_id: string
+          rule_type: Database["public"]["Enums"]["requirement_rule_type"]
+          sort_order: number
+          subject_id: string | null
+          subject_ids: string[]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_required?: boolean
+          metadata?: Json
+          min_achievement_level?: number | null
+          min_aps?: number | null
+          min_count?: number | null
+          min_percentage?: number | null
+          requirement_set_id: string
+          rule_type: Database["public"]["Enums"]["requirement_rule_type"]
+          sort_order?: number
+          subject_id?: string | null
+          subject_ids?: string[]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_required?: boolean
+          metadata?: Json
+          min_achievement_level?: number | null
+          min_aps?: number | null
+          min_count?: number | null
+          min_percentage?: number | null
+          requirement_set_id?: string
+          rule_type?: Database["public"]["Enums"]["requirement_rule_type"]
+          sort_order?: number
+          subject_id?: string | null
+          subject_ids?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_requirement_rules_requirement_set_id_fkey"
+            columns: ["requirement_set_id"]
+            isOneToOne: false
+            referencedRelation: "course_requirement_sets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_requirement_rules_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      course_requirement_sets: {
+        Row: {
+          course_id: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          metadata: Json
+          min_aps: number | null
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          metadata?: Json
+          min_aps?: number | null
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          metadata?: Json
+          min_aps?: number | null
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_requirement_sets_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      courses: {
+        Row: {
+          application_url: string | null
+          aps_requirement: number | null
+          code: string | null
+          created_at: string
+          description: string | null
+          duration_years: number | null
+          faculty_id: string | null
+          id: string
+          is_active: boolean
+          is_demo: boolean
+          metadata: Json
+          name: string
+          qualification_type_id: string | null
+          sort_order: number
+          university_id: string
+          updated_at: string
+        }
+        Insert: {
+          application_url?: string | null
+          aps_requirement?: number | null
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          duration_years?: number | null
+          faculty_id?: string | null
+          id?: string
+          is_active?: boolean
+          is_demo?: boolean
+          metadata?: Json
+          name: string
+          qualification_type_id?: string | null
+          sort_order?: number
+          university_id: string
+          updated_at?: string
+        }
+        Update: {
+          application_url?: string | null
+          aps_requirement?: number | null
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          duration_years?: number | null
+          faculty_id?: string | null
+          id?: string
+          is_active?: boolean
+          is_demo?: boolean
+          metadata?: Json
+          name?: string
+          qualification_type_id?: string | null
+          sort_order?: number
+          university_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courses_faculty_id_fkey"
+            columns: ["faculty_id"]
+            isOneToOne: false
+            referencedRelation: "faculties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "courses_qualification_type_id_fkey"
+            columns: ["qualification_type_id"]
+            isOneToOne: false
+            referencedRelation: "qualification_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "courses_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      faculties: {
+        Row: {
+          code: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          metadata: Json
+          name: string
+          sort_order: number
+          university_id: string
+          updated_at: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          metadata?: Json
+          name: string
+          sort_order?: number
+          university_id: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          metadata?: Json
+          name?: string
+          sort_order?: number
+          university_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faculties_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -73,6 +315,36 @@ export type Database = {
           id?: string
           name?: string
           sort_order?: number
+        }
+        Relationships: []
+      }
+      qualification_types: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          name: string
+          nqf_level: number | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          nqf_level?: number | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          nqf_level?: number | null
+          sort_order?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -157,6 +429,71 @@ export type Database = {
         }
         Relationships: []
       }
+      universities: {
+        Row: {
+          application_url: string | null
+          city: string | null
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          is_demo: boolean
+          logo_url: string | null
+          metadata: Json
+          name: string
+          province_id: string
+          short_name: string | null
+          sort_order: number
+          updated_at: string
+          website_url: string | null
+        }
+        Insert: {
+          application_url?: string | null
+          city?: string | null
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_demo?: boolean
+          logo_url?: string | null
+          metadata?: Json
+          name: string
+          province_id: string
+          short_name?: string | null
+          sort_order?: number
+          updated_at?: string
+          website_url?: string | null
+        }
+        Update: {
+          application_url?: string | null
+          city?: string | null
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_demo?: boolean
+          logo_url?: string | null
+          metadata?: Json
+          name?: string
+          province_id?: string
+          short_name?: string | null
+          sort_order?: number
+          updated_at?: string
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "universities_province_id_fkey"
+            columns: ["province_id"]
+            isOneToOne: false
+            referencedRelation: "provinces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -165,7 +502,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      requirement_rule_type:
+        | "min_aps"
+        | "subject_min_percentage"
+        | "subject_min_level"
+        | "one_of_subjects_min_percentage"
+        | "one_of_subjects_min_level"
+        | "min_subject_count"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -292,6 +635,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      requirement_rule_type: [
+        "min_aps",
+        "subject_min_percentage",
+        "subject_min_level",
+        "one_of_subjects_min_percentage",
+        "one_of_subjects_min_level",
+        "min_subject_count",
+      ],
+    },
   },
 } as const
