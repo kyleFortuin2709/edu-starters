@@ -1,18 +1,17 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { ActionButton } from "@/components/ActionButton";
 import { useAuth } from "@/lib/auth";
+import { fetchMyProfile, isProfileComplete, type StudentProfile } from "@/lib/profile";
 
-export const Route = createFileRoute("/dashboard")({
+export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
       { title: "Your dashboard — EduStarter" },
       { name: "description", content: "Track your NSC results and university course matches in one place." },
       { property: "og:title", content: "Your dashboard — EduStarter" },
-      {
-        property: "og:description",
-        content: "Track your NSC results and university course matches in one place.",
-      },
+      { property: "og:description", content: "Track your NSC results and university course matches in one place." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -26,36 +25,36 @@ const tiers = [
 ];
 
 function DashboardPage() {
-  const { user, ready } = useAuth();
+  const { user, displayName } = useAuth();
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState<StudentProfile | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  if (!ready) {
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    fetchMyProfile(user.id)
+      .then((data) => {
+        if (!active) return;
+        if (!isProfileComplete(data)) {
+          navigate({ to: "/profile-setup", replace: true });
+          return;
+        }
+        setProfile(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [user, navigate]);
+
+  if (loading) {
     return (
       <SiteLayout>
         <div className="mx-auto max-w-7xl px-6 py-24 text-sm text-muted-foreground">Loading…</div>
-      </SiteLayout>
-    );
-  }
-
-  if (!user) {
-    return (
-      <SiteLayout>
-        <section className="mx-auto max-w-md px-6 py-24 text-center">
-          <h1 className="font-display text-3xl font-semibold">This page is for students only</h1>
-          <p className="mt-4 text-muted-foreground">
-            Log in or create a free profile to view your dashboard.
-          </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <Link
-              to="/login"
-              className="rounded-2xl bg-primary px-6 py-3 font-bold text-primary-foreground shadow-xl shadow-primary/20"
-            >
-              Log in
-            </Link>
-            <Link to="/signup" className="rounded-2xl border border-border bg-card px-6 py-3 font-bold">
-              Join for free
-            </Link>
-          </div>
-        </section>
       </SiteLayout>
     );
   }
@@ -69,7 +68,7 @@ function DashboardPage() {
               Student dashboard
             </p>
             <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">
-              Hello, {user.name}.
+              Hello, {profile?.first_name || displayName}.
             </h1>
             <p className="mt-3 max-w-xl text-muted-foreground">
               Once your NSC results are added, your course matches will appear here grouped by status.
