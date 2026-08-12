@@ -31,6 +31,7 @@ export function ingestionStatusLabel(status: IngestionStatus): string {
 export type ProspectusDocument = {
   id: string;
   university_id: string | null;
+  aps_rule_id: string | null;
   title: string;
   file_name: string;
   storage_path: string;
@@ -48,14 +49,22 @@ export type ProspectusDocument = {
     academic_year?: string | null;
     document_flags?: string[];
     course_count?: number;
+    proposed_aps?: ProposedApsPayload | null;
   } | null;
   created_at: string;
   updated_at: string;
   universities: { id: string; name: string } | null;
 };
 
+export type ProposedApsPayload = {
+  name?: string | null;
+  counting_subject_count?: number | null;
+  bands?: { min_percentage: number; max_percentage: number; points: number; label: string | null }[];
+  notes?: string[];
+};
+
 const PROSPECTUS_SELECT = `
-  id, university_id, title, file_name, storage_path, file_size, academic_year,
+  id, university_id, aps_rule_id, title, file_name, storage_path, file_size, academic_year,
   status, page_count, notes, error_message, created_at, updated_at,
   extracted_at, extraction_model, aps_methodology_text, extraction_payload,
   universities:university_id ( id, name )
