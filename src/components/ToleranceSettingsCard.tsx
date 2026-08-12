@@ -60,8 +60,8 @@ export function ToleranceSettingsCard({
       </p>
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <TextField
-          label="APS tolerance"
-          name="apsTolerance"
+          label="APS tolerance (points)"
+          id="apsTolerance"
           type="number"
           min={0}
           max={20}
@@ -70,11 +70,10 @@ export function ToleranceSettingsCard({
             setAps(event.target.value);
             setStatus("idle");
           }}
-          hint="APS points"
         />
         <TextField
           label="Subject % tolerance"
-          name="subjectTolerance"
+          id="subjectTolerance"
           type="number"
           min={0}
           max={20}
@@ -83,17 +82,16 @@ export function ToleranceSettingsCard({
             setSubject(event.target.value);
             setStatus("idle");
           }}
-          hint="Percentage points"
         />
       </div>
       {error && (
         <div className="mt-4">
-          <FormMessage variant="error">{error}</FormMessage>
+          <FormMessage tone="error">{error}</FormMessage>
         </div>
       )}
       {status === "saved" && !error && (
         <div className="mt-4">
-          <FormMessage variant="success">Settings saved.</FormMessage>
+          <FormMessage tone="success">Settings saved.</FormMessage>
         </div>
       )}
       <ActionButton type="submit" variant="outline" className="mt-6" disabled={status === "saving"}>
