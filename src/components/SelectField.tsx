@@ -1,4 +1,4 @@
-import type { SelectHTMLAttributes } from "react";
+import type { ReactNode, SelectHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 type SelectFieldProps = SelectHTMLAttributes<HTMLSelectElement> & {
@@ -6,9 +6,10 @@ type SelectFieldProps = SelectHTMLAttributes<HTMLSelectElement> & {
   id: string;
   options: { value: string; label: string }[];
   placeholder?: string;
+  children?: ReactNode;
 };
 
-export function SelectField({ label, id, options, placeholder, className, ...props }: SelectFieldProps) {
+export function SelectField({ label, id, options, placeholder, className, children, ...props }: SelectFieldProps) {
   return (
     <div className="space-y-1.5">
       <label htmlFor={id} className="text-sm font-semibold text-foreground">
@@ -22,12 +23,16 @@ export function SelectField({ label, id, options, placeholder, className, ...pro
         )}
         {...props}
       >
-        {placeholder ? <option value="">{placeholder}</option> : null}
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
+        {children ?? (
+          <>
+            {placeholder ? <option value="">{placeholder}</option> : null}
+            {options.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </>
+        )}
       </select>
     </div>
   );

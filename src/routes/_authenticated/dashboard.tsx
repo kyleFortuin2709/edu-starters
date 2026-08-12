@@ -1,9 +1,10 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { ActionButton } from "@/components/ActionButton";
 import { useAuth } from "@/lib/auth";
 import { fetchMyProfile, isProfileComplete, type StudentProfile } from "@/lib/profile";
+import { countMyResults } from "@/lib/results";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -18,29 +19,25 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
 });
 
-const tiers = [
-  { label: "You Qualify", tone: "bg-success", note: "Requirements met" },
-  { label: "Almost Qualify", tone: "bg-warning", note: "Within reach" },
-  { label: "Don't Qualify", tone: "bg-muted-foreground", note: "Alternative pathways" },
-];
-
 function DashboardPage() {
   const { user, displayName } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<StudentProfile | null>(null);
+  const [subjectCount, setSubjectCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
     let active = true;
-    fetchMyProfile(user.id)
-      .then((data) => {
+    Promise.all([fetchMyProfile(user.id), countMyResults(user.id)])
+      .then(([data, count]) => {
         if (!active) return;
         if (!isProfileComplete(data)) {
           navigate({ to: "/profile-setup", replace: true });
           return;
         }
         setProfile(data);
+        setSubjectCount(count);
         setLoading(false);
       })
       .catch(() => {
