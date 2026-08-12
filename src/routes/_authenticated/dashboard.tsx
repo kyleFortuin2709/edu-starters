@@ -5,6 +5,7 @@ import { ActionButton } from "@/components/ActionButton";
 import { useAuth } from "@/lib/auth";
 import { fetchMyProfile, isProfileComplete, type StudentProfile } from "@/lib/profile";
 import { countMyResults } from "@/lib/results";
+import { ToleranceSettingsCard } from "@/components/ToleranceSettingsCard";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -116,6 +117,23 @@ function DashboardPage() {
             </Link>
           </div>
         </div>
+
+        {user && (
+          <div className="mt-6 grid gap-6 md:grid-cols-2">
+            <ToleranceSettingsCard userId={user.id} profile={profile} />
+            <div className="rounded-[2rem] border border-border bg-card p-8">
+              <span className="font-mono text-xs font-bold uppercase text-muted-foreground">
+                How APS will work
+              </span>
+              <p className="mt-4 text-sm text-muted-foreground">
+                There is no single universal APS score. Each institution's APS calculation rule is
+                stored separately, so the same NSC results can produce different APS scores
+                depending on which rule applies. Only a clearly labelled{" "}
+                <strong>DEMO / UNVERIFIED</strong> rule exists so far.
+              </p>
+            </div>
+          </div>
+        )}
       </section>
     </SiteLayout>
   );
