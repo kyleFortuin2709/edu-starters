@@ -1,48 +1,51 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-
-export type DemoUser = { name: string; email: string };
-
-const STORAGE_KEY = "edustarter.demo-user";
+import type { Session, User } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
 
 type AuthContextValue = {
-  user: DemoUser | null;
+  user: User | null;
+  session: Session | null;
   ready: boolean;
-  signIn: (user: DemoUser) => void;
-  signOut: () => void;
+  displayName: string;
+  signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-/**
- * Placeholder auth store. Persists a demo user in localStorage so the
- * protected dashboard shell can be exercised. Swap the internals for
- * Lovable Cloud auth in a later step — the API stays the same.
- */
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<DemoUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) setUser(JSON.parse(raw) as DemoUser);
-    } catch {
-      // ignore malformed storage
-    }
-    setReady(true);
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+      setReady(true);
+    });
+
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setReady(true);
+    });
+
+    return () => sub.subscription.unsubscribe();
   }, []);
 
-  const signIn = useCallback((next: DemoUser) => {
-    setUser(next);
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  const signOut = useCallback(async () => {
+    await supabase.auth.signOut();
+    setSession(null);
+    if (typeof window !== "undefined") window.location.href = "/";
   }, []);
 
-  const signOut = useCallback(() => {
-    setUser(null);
-    window.localStorage.removeItem(STORAGE_KEY);
-  }, []);
+  const user = session?.user ?? null;
+  const displayName =
+    (user?.user_metadata?.["first_name"] as string | undefined) ||
+    user?.email?.split("@")[0] ||
+    "Student";
 
-  const value = useMemo(() => ({ user, ready, signIn, signOut }), [user, ready, signIn, signOut]);
+  const value = useMemo(
+    () => ({ user, session, ready, displayName, signOut }),
+    [user, session, ready, displayName, signOut],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
@@ -51,4 +54,25 @@ export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within an AuthProvider");
   return ctx;
+}
+
+/** Turns backend auth errors into friendly, student-facing messages. */
+export function friendlyAuthError(message?: string | null): string {
+  const raw = (message ?? "").toLowerCase();
+  if (!raw) return "Something went wrong. Please try again.";
+  if (raw.includes("invalid login credentials"))
+    return "That email and password don't match. Please check them and try again.";
+  if (raw.includes("email not confirmed"))
+    return "Please confirm your email first — check your inbox for the link we sent you.";
+  if (raw.includes("user already registered") || raw.includes("already been registered"))
+    return "You already have an account with this email. Try logging in instead.";
+  if (raw.includes("password should be at least"))
+    return "Your password is too short — please use at least 6 characters.";
+  if (raw.includes("rate limit") || raw.includes("too many"))
+    return "Too many attempts. Please wait a minute and try again.";
+  if (raw.includes("unable to validate email") || raw.includes("invalid email"))
+    return "That email address doesn't look right. Please check it and try again.";
+  if (raw.includes("network") || raw.includes("fetch"))
+    return "We couldn't reach EduStarter. Please check your internet connection.";
+  return "Something went wrong. Please try again.";
 }
