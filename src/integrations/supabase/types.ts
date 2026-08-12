@@ -14,6 +14,152 @@ export type Database = {
   }
   public: {
     Tables: {
+      aps_calculation_rules: {
+        Row: {
+          code: string
+          counting_subject_count: number | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          max_total_aps: number | null
+          name: string
+          sort_order: number
+          source_url: string | null
+          special_rules: Json
+          status: Database["public"]["Enums"]["aps_rule_status"]
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          code: string
+          counting_subject_count?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          max_total_aps?: number | null
+          name: string
+          sort_order?: number
+          source_url?: string | null
+          special_rules?: Json
+          status?: Database["public"]["Enums"]["aps_rule_status"]
+          updated_at?: string
+          version?: string
+        }
+        Update: {
+          code?: string
+          counting_subject_count?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          max_total_aps?: number | null
+          name?: string
+          sort_order?: number
+          source_url?: string | null
+          special_rules?: Json
+          status?: Database["public"]["Enums"]["aps_rule_status"]
+          updated_at?: string
+          version?: string
+        }
+        Relationships: []
+      }
+      aps_point_bands: {
+        Row: {
+          created_at: string
+          id: string
+          label: string | null
+          max_percentage: number
+          min_percentage: number
+          points: number
+          rule_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label?: string | null
+          max_percentage: number
+          min_percentage: number
+          points: number
+          rule_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string | null
+          max_percentage?: number
+          min_percentage?: number
+          points?: number
+          rule_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aps_point_bands_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "aps_calculation_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aps_rule_subjects: {
+        Row: {
+          bonus_points: number | null
+          created_at: string
+          id: string
+          max_points: number | null
+          notes: string | null
+          rule_id: string
+          rule_type: Database["public"]["Enums"]["aps_subject_rule_type"]
+          subject_id: string
+          updated_at: string
+        }
+        Insert: {
+          bonus_points?: number | null
+          created_at?: string
+          id?: string
+          max_points?: number | null
+          notes?: string | null
+          rule_id: string
+          rule_type: Database["public"]["Enums"]["aps_subject_rule_type"]
+          subject_id: string
+          updated_at?: string
+        }
+        Update: {
+          bonus_points?: number | null
+          created_at?: string
+          id?: string
+          max_points?: number | null
+          notes?: string | null
+          rule_id?: string
+          rule_type?: Database["public"]["Enums"]["aps_subject_rule_type"]
+          subject_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aps_rule_subjects_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "aps_calculation_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aps_rule_subjects_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_requirement_rules: {
         Row: {
           created_at: string
@@ -258,30 +404,36 @@ export type Database = {
       }
       profiles: {
         Row: {
+          aps_tolerance: number
           created_at: string
           first_name: string | null
           id: string
           last_name: string | null
           onboarding_completed_at: string | null
           province_id: string | null
+          subject_percentage_tolerance: number
           updated_at: string
         }
         Insert: {
+          aps_tolerance?: number
           created_at?: string
           first_name?: string | null
           id: string
           last_name?: string | null
           onboarding_completed_at?: string | null
           province_id?: string | null
+          subject_percentage_tolerance?: number
           updated_at?: string
         }
         Update: {
+          aps_tolerance?: number
           created_at?: string
           first_name?: string | null
           id?: string
           last_name?: string | null
           onboarding_completed_at?: string | null
           province_id?: string | null
+          subject_percentage_tolerance?: number
           updated_at?: string
         }
         Relationships: [
@@ -432,6 +584,7 @@ export type Database = {
       universities: {
         Row: {
           application_url: string | null
+          aps_rule_id: string | null
           city: string | null
           code: string
           created_at: string
@@ -450,6 +603,7 @@ export type Database = {
         }
         Insert: {
           application_url?: string | null
+          aps_rule_id?: string | null
           city?: string | null
           code: string
           created_at?: string
@@ -468,6 +622,7 @@ export type Database = {
         }
         Update: {
           application_url?: string | null
+          aps_rule_id?: string | null
           city?: string | null
           code?: string
           created_at?: string
@@ -486,6 +641,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "universities_aps_rule_id_fkey"
+            columns: ["aps_rule_id"]
+            isOneToOne: false
+            referencedRelation: "aps_calculation_rules"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "universities_province_id_fkey"
             columns: ["province_id"]
             isOneToOne: false
@@ -502,6 +664,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      aps_rule_status: "demo" | "unverified" | "verified"
+      aps_subject_rule_type:
+        | "exclude"
+        | "always_include"
+        | "cap_points"
+        | "bonus_points"
       requirement_rule_type:
         | "min_aps"
         | "subject_min_percentage"
@@ -636,6 +804,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      aps_rule_status: ["demo", "unverified", "verified"],
+      aps_subject_rule_type: [
+        "exclude",
+        "always_include",
+        "cap_points",
+        "bonus_points",
+      ],
       requirement_rule_type: [
         "min_aps",
         "subject_min_percentage",
