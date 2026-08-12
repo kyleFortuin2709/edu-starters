@@ -3,11 +3,12 @@ import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { ActionButton } from "@/components/ActionButton";
 import { EligibilityStatusBadge } from "@/components/EligibilityStatusBadge";
+import { SaveCourseButton } from "@/components/SaveCourseButton";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { fetchCourseWithRequirements, type CourseWithRequirements } from "@/lib/catalogue";
 import type { RequirementCheck } from "@/lib/eligibility";
-import { describeCheck, STATUS_LABEL, STATUS_TONE } from "@/lib/eligibility-format";
+import { describeCheck, outstandingChecks, STATUS_TONE } from "@/lib/eligibility-format";
 import { loadEligibilityView, type CourseEligibilityView } from "@/lib/eligibility-view";
 
 export const Route = createFileRoute("/_authenticated/matches/$courseId")({
@@ -97,6 +98,7 @@ function CourseDetailPage() {
 
   const tone = STATUS_TONE[eligibility.status];
   const checks = eligibility.bestSet?.checks ?? [];
+  const unmet = outstandingChecks(eligibility);
   const results = eligibility.apsCalculation?.subjects ?? [];
 
   return (
@@ -110,20 +112,26 @@ function CourseDetailPage() {
         </Link>
 
         <header className={cn("mt-6 rounded-[2rem] border bg-card p-8", tone.border)}>
-          <EligibilityStatusBadge status={eligibility.status} />
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <EligibilityStatusBadge status={eligibility.status} />
+            <SaveCourseButton courseId={eligibility.courseId} showLabel />
+          </div>
           <h1 className="mt-4 font-display text-4xl font-semibold tracking-tight">
             {eligibility.courseName}
           </h1>
-          <p className="mt-3 text-muted-foreground">
+          <dl className="mt-6 grid gap-4 font-mono text-xs sm:grid-cols-2 lg:grid-cols-4">
             {[
-              eligibility.universityName,
-              eligibility.facultyName,
-              eligibility.provinceName,
-              eligibility.qualificationName,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
+              { label: "University", value: eligibility.universityName },
+              { label: "Faculty", value: eligibility.facultyName },
+              { label: "Province", value: eligibility.provinceName },
+              { label: "Qualification", value: eligibility.qualificationName },
+            ].map((item) => (
+              <div key={item.label}>
+                <dt className="uppercase text-muted-foreground">{item.label}</dt>
+                <dd className="mt-1 font-sans text-sm font-semibold">{item.value ?? "—"}</dd>
+              </div>
+            ))}
+          </dl>
           {course?.description ? (
             <p className="mt-5 max-w-2xl text-sm text-muted-foreground">{course.description}</p>
           ) : null}
@@ -133,6 +141,19 @@ function CourseDetailPage() {
             </p>
           ) : null}
         </header>
+
+        {unmet.length > 0 && (
+          <div className={cn("mt-6 rounded-[2rem] border bg-card p-8", tone.border)}>
+            <h2 className="font-display text-2xl font-semibold">What's standing in the way</h2>
+            <ul className="mt-4 space-y-2 text-sm">
+              {unmet.map((check) => (
+                <li key={check.ruleId} className={cn(OUTCOME_TONE[check.outcome])}>
+                  • {describeCheck(check)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className="mt-6 grid gap-6 md:grid-cols-3">
           <div className="rounded-[2rem] border border-border bg-card p-8">

@@ -126,6 +126,12 @@ function DashboardPage() {
                 Add my results →
               </Link>
             )}
+            <Link
+              to="/saved"
+              className="mt-3 block font-semibold text-primary underline-offset-4 hover:underline"
+            >
+              View my saved courses →
+            </Link>
           </div>
         </div>
 

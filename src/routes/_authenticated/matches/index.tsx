@@ -131,11 +131,18 @@ function MatchesPage() {
               the requirements is never a guarantee of admission.
             </p>
           </div>
-          <Link to="/results">
-            <ActionButton variant="outline" size="lg">
-              Edit my results
-            </ActionButton>
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link to="/saved">
+              <ActionButton variant="outline" size="lg">
+                Saved courses
+              </ActionButton>
+            </Link>
+            <Link to="/results">
+              <ActionButton variant="outline" size="lg">
+                Edit my results
+              </ActionButton>
+            </Link>
+          </div>
         </div>
 
         {error ? (
