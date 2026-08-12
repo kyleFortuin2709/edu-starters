@@ -4,6 +4,7 @@ import { SiteLayout } from "@/components/SiteLayout";
 import { ActionButton } from "@/components/ActionButton";
 import { EligibilityStatusBadge } from "@/components/EligibilityStatusBadge";
 import { SaveCourseButton } from "@/components/SaveCourseButton";
+import { CourseAdvisor } from "@/components/CourseAdvisor";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { fetchCourseWithRequirements, type CourseWithRequirements } from "@/lib/catalogue";
@@ -258,15 +259,7 @@ function CourseDetailPage() {
           </ul>
         )}
 
-        {/* Reserved for future AI explanations / chat. Not implemented yet. */}
-        <div className="mt-6 rounded-[2rem] border border-dashed border-border bg-card/60 p-8">
-          <span className="font-mono text-xs uppercase text-muted-foreground">Coming later</span>
-          <h2 className="mt-3 font-display text-xl font-semibold">Ask about this course</h2>
-          <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-            A guided explanation of this result, and answers to your questions about the course, will
-            live here in a future update.
-          </p>
-        </div>
+        <CourseAdvisor course={eligibility} description={course?.description ?? null} />
       </section>
     </SiteLayout>
   );
