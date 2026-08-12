@@ -6,17 +6,17 @@ import platformImage from "@/assets/platform-interface.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "EduStarter — Match your NSC results to SA university courses" },
+      { title: "EduStarter — Understand which SA university courses you may qualify for" },
       {
         name: "description",
         content:
-          "EduStarter turns your NSC marks into a clear list of South African university courses you qualify for, almost qualify for, or should plan around.",
+          "EduStarter helps you match your NSC results with university course requirements and understand where you may qualify. Eligibility information is not a guarantee of admission.",
       },
-      { property: "og:title", content: "EduStarter — Match your NSC results to SA university courses" },
+      { property: "og:title", content: "EduStarter — Understand which SA university courses you may qualify for" },
       {
         property: "og:description",
         content:
-          "Match your matric marks with South African university degrees and see exactly where you qualify.",
+          "Match your NSC results with university course requirements and understand where you may qualify. Eligibility information is not a guarantee of admission.",
       },
     ],
   }),
