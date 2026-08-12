@@ -109,7 +109,7 @@ function Index() {
         <div className="mx-auto grid max-w-7xl items-center gap-16 px-6 md:grid-cols-2 md:gap-24">
           <img
             src={platformImage}
-            alt="EduStarter dashboard showing academic progress and course matches"
+            alt="Demo preview of the EduStarter dashboard concept"
             width={1200}
             height={1008}
             loading="lazy"
@@ -118,7 +118,7 @@ function Index() {
           <div>
             <h2 className="mb-8 font-display text-4xl font-semibold leading-tight">
               One profile. <br />
-              Every institution.
+              Your future options.
             </h2>
             <div className="space-y-12">
               <div className="flex gap-6">
@@ -126,8 +126,7 @@ function Index() {
                 <div>
                   <h3 className="mb-2 text-lg font-bold">Smart APS Calculator</h3>
                   <p className="text-background/60">
-                    Input your marks once. We calculate your APS for every university in South Africa
-                    automatically.
+                    Input your marks once. EduStarter will help you compare your APS against published course requirements.
                   </p>
                 </div>
               </div>
@@ -136,7 +135,7 @@ function Index() {
                 <div>
                   <h3 className="mb-2 text-lg font-bold">Pathway Support</h3>
                   <p className="text-background/60">
-                    Didn't get the marks you needed? We suggest bridge programmes and TVET alternatives.
+                    Didn't get the marks you need? EduStarter will suggest bridge programmes and TVET alternatives to explore.
                   </p>
                 </div>
               </div>
