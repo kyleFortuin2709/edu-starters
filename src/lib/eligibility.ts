@@ -411,7 +411,7 @@ export function evaluateCourses(
       apsCalculation: options.apsByUniversity.get(course.university_id) ?? null,
       results: options.results,
       tolerances: options.tolerances,
-      subjectNames: options.subjectNames,
+      ...(options.subjectNames ? { subjectNames: options.subjectNames } : {}),
     }),
   );
 }
