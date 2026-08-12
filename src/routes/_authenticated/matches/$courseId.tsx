@@ -259,7 +259,7 @@ function CourseDetailPage() {
           </ul>
         )}
 
-        <CourseAdvisor eligibility={eligibility} description={course?.description ?? null} />
+        <CourseAdvisor course={eligibility} description={course?.description ?? null} />
       </section>
     </SiteLayout>
   );
