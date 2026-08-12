@@ -60,7 +60,10 @@ export async function evaluateMyEligibility(
     if (!rule) continue;
     let calculation = apsByRule.get(ruleId);
     if (!calculation) {
-      calculation = calculateAps(rule, results);
+      calculation = calculateAps(
+        rule,
+        results.map((r) => ({ subjectId: r.subjectId, mark: r.mark })),
+      );
       apsByRule.set(ruleId, calculation);
     }
     apsByUniversity.set(universityId, calculation);
