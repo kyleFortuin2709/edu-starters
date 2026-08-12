@@ -107,14 +107,25 @@ function DashboardPage() {
           <div className="rounded-[2rem] border border-border bg-card p-8">
             <span className="font-mono text-xs font-bold uppercase text-muted-foreground">Next step</span>
             <p className="mt-6 text-sm text-muted-foreground">
-              Course matching isn't available yet. For now, keep your results accurate and complete.
+              {subjectCount > 0
+                ? "See how your results compare with the entry requirements of the demo courses in the catalogue."
+                : "Add your subjects and marks first, then we can compare them with course entry requirements."}
             </p>
-            <Link
-              to="/results"
-              className="mt-4 inline-block font-semibold text-primary underline-offset-4 hover:underline"
-            >
-              {subjectCount > 0 ? "Edit my results" : "Add my results"} →
-            </Link>
+            {subjectCount > 0 ? (
+              <Link
+                to="/matches"
+                className="mt-4 inline-block font-semibold text-primary underline-offset-4 hover:underline"
+              >
+                View my course matches →
+              </Link>
+            ) : (
+              <Link
+                to="/results"
+                className="mt-4 inline-block font-semibold text-primary underline-offset-4 hover:underline"
+              >
+                Add my results →
+              </Link>
+            )}
           </div>
         </div>
 
