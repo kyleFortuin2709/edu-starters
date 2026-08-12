@@ -1,9 +1,10 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { ActionButton } from "@/components/ActionButton";
 import { useAuth } from "@/lib/auth";
 import { fetchMyProfile, isProfileComplete, type StudentProfile } from "@/lib/profile";
+import { countMyResults } from "@/lib/results";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -18,29 +19,25 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
 });
 
-const tiers = [
-  { label: "You Qualify", tone: "bg-success", note: "Requirements met" },
-  { label: "Almost Qualify", tone: "bg-warning", note: "Within reach" },
-  { label: "Don't Qualify", tone: "bg-muted-foreground", note: "Alternative pathways" },
-];
-
 function DashboardPage() {
   const { user, displayName } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<StudentProfile | null>(null);
+  const [subjectCount, setSubjectCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
     let active = true;
-    fetchMyProfile(user.id)
-      .then((data) => {
+    Promise.all([fetchMyProfile(user.id), countMyResults(user.id)])
+      .then(([data, count]) => {
         if (!active) return;
         if (!isProfileComplete(data)) {
           navigate({ to: "/profile-setup", replace: true });
           return;
         }
         setProfile(data);
+        setSubjectCount(count);
         setLoading(false);
       })
       .catch(() => {
@@ -71,36 +68,53 @@ function DashboardPage() {
               Hello, {profile?.first_name || displayName}.
             </h1>
             <p className="mt-3 max-w-xl text-muted-foreground">
-              Once your NSC results are added, your course matches will appear here grouped by status.
+              This is your home base. Keep your NSC subjects and marks up to date here.
             </p>
           </div>
-          <ActionButton size="lg" disabled>
-            Add my results
-          </ActionButton>
+          <Link to="/results">
+            <ActionButton size="lg">
+              {subjectCount > 0 ? "Edit my results" : "Add my results"}
+            </ActionButton>
+          </Link>
         </div>
 
         <div className="mt-12 grid gap-6 md:grid-cols-3">
-          {tiers.map((tier) => (
-            <div key={tier.label} className="rounded-[2rem] border border-border bg-card p-8">
-              <div className="flex items-center gap-2">
-                <span className={`size-2 rounded-full ${tier.tone}`} aria-hidden="true" />
-                <span className="font-mono text-xs font-bold uppercase">{tier.label}</span>
-              </div>
-              <p className="mt-6 font-display text-4xl font-semibold">—</p>
-              <p className="mt-2 text-sm text-muted-foreground">{tier.note}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-6 grid place-items-center rounded-[2rem] bg-surface-muted p-12 text-center md:p-20">
-          <div className="mb-4 grid size-16 place-items-center rounded-full bg-card shadow-sm">
-            <div className="size-8 rounded-lg border-2 border-dashed border-border" />
+          <div className="rounded-[2rem] border border-border bg-card p-8">
+            <span className="font-mono text-xs font-bold uppercase text-muted-foreground">
+              Subjects entered
+            </span>
+            <p className="mt-6 font-display text-4xl font-semibold">{subjectCount}</p>
+            <p className="mt-2 text-sm text-muted-foreground">NSC subjects with a mark saved.</p>
           </div>
-          <h2 className="font-display text-xl font-semibold">No results added yet</h2>
-          <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-            Course matching is coming soon. Your saved marks, matched degrees and application tracking will
-            all live in this space.
-          </p>
+          <div className="rounded-[2rem] border border-border bg-card p-8">
+            <div className="flex items-center gap-2">
+              <span
+                className={`size-2 rounded-full ${subjectCount > 0 ? "bg-success" : "bg-muted-foreground"}`}
+                aria-hidden="true"
+              />
+              <span className="font-mono text-xs font-bold uppercase">Results status</span>
+            </div>
+            <p className="mt-6 font-display text-2xl font-semibold">
+              {subjectCount > 0 ? "Results saved" : "Not started"}
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {subjectCount > 0
+                ? "You can edit or add subjects at any time."
+                : "Add your subjects and marks to get started."}
+            </p>
+          </div>
+          <div className="rounded-[2rem] border border-border bg-card p-8">
+            <span className="font-mono text-xs font-bold uppercase text-muted-foreground">Next step</span>
+            <p className="mt-6 text-sm text-muted-foreground">
+              Course matching isn't available yet. For now, keep your results accurate and complete.
+            </p>
+            <Link
+              to="/results"
+              className="mt-4 inline-block font-semibold text-primary underline-offset-4 hover:underline"
+            >
+              {subjectCount > 0 ? "Edit my results" : "Add my results"} →
+            </Link>
+          </div>
         </div>
       </section>
     </SiteLayout>
