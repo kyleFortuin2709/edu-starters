@@ -18,6 +18,7 @@ import { SelectField } from "@/components/SelectField";
 import { TextField } from "@/components/TextField";
 import { extractProspectus } from "@/lib/prospectus-extract.functions";
 import { ApsRuleReviewCard } from "@/components/ApsRuleReviewCard";
+import { findMissingInformation } from "@/lib/prospectus-publish";
 
 export const Route = createFileRoute("/_authenticated/admin/prospectuses/$prospectusId")({
   head: () => ({
@@ -377,6 +378,11 @@ function ProspectusDetailPage() {
                       .filter(Boolean)
                       .join(" · ") || "No details captured yet"}
                   </p>
+                  {findMissingInformation(s).length > 0 && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Missing: {findMissingInformation(s).map((m) => m.label).join(", ")}
+                    </p>
+                  )}
                 </div>
                 <Link
                   to="/admin/staged/$stagedId"
