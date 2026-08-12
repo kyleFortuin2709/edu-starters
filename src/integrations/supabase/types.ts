@@ -455,8 +455,12 @@ export type Database = {
       prospectus_documents: {
         Row: {
           academic_year: string | null
+          aps_methodology_text: string | null
           created_at: string
           error_message: string | null
+          extracted_at: string | null
+          extraction_model: string | null
+          extraction_payload: Json
           file_name: string
           file_size: number | null
           id: string
@@ -471,8 +475,12 @@ export type Database = {
         }
         Insert: {
           academic_year?: string | null
+          aps_methodology_text?: string | null
           created_at?: string
           error_message?: string | null
+          extracted_at?: string | null
+          extraction_model?: string | null
+          extraction_payload?: Json
           file_name: string
           file_size?: number | null
           id?: string
@@ -487,8 +495,12 @@ export type Database = {
         }
         Update: {
           academic_year?: string | null
+          aps_methodology_text?: string | null
           created_at?: string
           error_message?: string | null
+          extracted_at?: string | null
+          extraction_model?: string | null
+          extraction_payload?: Json
           file_name?: string
           file_size?: number | null
           id?: string

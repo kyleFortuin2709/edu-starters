@@ -40,6 +40,15 @@ export type ProspectusDocument = {
   page_count: number | null;
   notes: string | null;
   error_message: string | null;
+  extracted_at: string | null;
+  extraction_model: string | null;
+  aps_methodology_text: string | null;
+  extraction_payload: {
+    university_name?: string | null;
+    academic_year?: string | null;
+    document_flags?: string[];
+    course_count?: number;
+  } | null;
   created_at: string;
   updated_at: string;
   universities: { id: string; name: string } | null;
@@ -48,6 +57,7 @@ export type ProspectusDocument = {
 const PROSPECTUS_SELECT = `
   id, university_id, title, file_name, storage_path, file_size, academic_year,
   status, page_count, notes, error_message, created_at, updated_at,
+  extracted_at, extraction_model, aps_methodology_text, extraction_payload,
   universities:university_id ( id, name )
 `;
 
@@ -68,6 +78,14 @@ export type StagedCourse = {
   status: IngestionStatus;
   review_notes: string | null;
   published_course_id: string | null;
+  extracted_payload: {
+    source?: string;
+    model?: string;
+    extracted_at?: string;
+    confidence?: "high" | "medium" | "low";
+    review_flags?: string[];
+    subject_requirements?: { subject: string; minimum: string | null; note: string | null }[];
+  } | null;
   created_at: string;
   updated_at: string;
 };
@@ -75,7 +93,8 @@ export type StagedCourse = {
 const STAGED_SELECT = `
   id, prospectus_id, university_id, faculty_name, qualification_name, name, code,
   description, duration_years, aps_requirement, application_url, requirements_text,
-  source_page, status, review_notes, published_course_id, created_at, updated_at
+  source_page, status, review_notes, published_course_id, extracted_payload,
+  created_at, updated_at
 `;
 
 export async function fetchProspectuses(): Promise<ProspectusDocument[]> {

@@ -200,6 +200,43 @@ function StagedCoursePage() {
         </p>
       )}
 
+      {record.extracted_payload?.source === "ai_extraction" && (
+        <div className="mt-6 rounded-[2rem] border border-border bg-card p-6 md:p-8">
+          <h2 className="font-display text-2xl font-semibold">AI extraction</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Captured from the prospectus by {record.extracted_payload.model ?? "AI"}
+            {record.extracted_payload.confidence
+              ? ` · confidence: ${record.extracted_payload.confidence}`
+              : ""}
+            . Every field below stays editable and must be checked before publishing.
+          </p>
+          {record.extracted_payload.review_flags?.length ? (
+            <div className="mt-4">
+              <h3 className="text-sm font-semibold">Flagged for human review</h3>
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                {record.extracted_payload.review_flags.map((flag) => (
+                  <li key={flag}>{flag}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {record.extracted_payload.subject_requirements?.length ? (
+            <div className="mt-5">
+              <h3 className="text-sm font-semibold">Subject requirements found</h3>
+              <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+                {record.extracted_payload.subject_requirements.map((s) => (
+                  <li key={`${s.subject}-${s.minimum ?? ""}`}>
+                    <span className="font-medium text-foreground">{s.subject}</span>
+                    {s.minimum ? ` — ${s.minimum}` : " — no minimum stated"}
+                    {s.note ? ` (${s.note})` : ""}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      )}
+
       <form onSubmit={save} className="mt-8 space-y-6">
         <div className="rounded-[2rem] border border-border bg-card p-6 md:p-8">
           <h2 className="font-display text-2xl font-semibold">Course information</h2>
