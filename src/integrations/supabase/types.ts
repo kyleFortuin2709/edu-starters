@@ -290,6 +290,7 @@ export type Database = {
           is_demo: boolean
           metadata: Json
           name: string
+          publication_status: Database["public"]["Enums"]["publication_status"]
           qualification_type_id: string | null
           sort_order: number
           university_id: string
@@ -308,6 +309,7 @@ export type Database = {
           is_demo?: boolean
           metadata?: Json
           name: string
+          publication_status?: Database["public"]["Enums"]["publication_status"]
           qualification_type_id?: string | null
           sort_order?: number
           university_id: string
@@ -326,6 +328,7 @@ export type Database = {
           is_demo?: boolean
           metadata?: Json
           name?: string
+          publication_status?: Database["public"]["Enums"]["publication_status"]
           qualification_type_id?: string | null
           sort_order?: number
           university_id?: string
@@ -364,6 +367,7 @@ export type Database = {
           is_active: boolean
           metadata: Json
           name: string
+          publication_status: Database["public"]["Enums"]["publication_status"]
           sort_order: number
           university_id: string
           updated_at: string
@@ -376,6 +380,7 @@ export type Database = {
           is_active?: boolean
           metadata?: Json
           name: string
+          publication_status?: Database["public"]["Enums"]["publication_status"]
           sort_order?: number
           university_id: string
           updated_at?: string
@@ -388,6 +393,7 @@ export type Database = {
           is_active?: boolean
           metadata?: Json
           name?: string
+          publication_status?: Database["public"]["Enums"]["publication_status"]
           sort_order?: number
           university_id?: string
           updated_at?: string
@@ -638,6 +644,7 @@ export type Database = {
           metadata: Json
           name: string
           province_id: string
+          publication_status: Database["public"]["Enums"]["publication_status"]
           short_name: string | null
           sort_order: number
           updated_at: string
@@ -657,6 +664,7 @@ export type Database = {
           metadata?: Json
           name: string
           province_id: string
+          publication_status?: Database["public"]["Enums"]["publication_status"]
           short_name?: string | null
           sort_order?: number
           updated_at?: string
@@ -676,6 +684,7 @@ export type Database = {
           metadata?: Json
           name?: string
           province_id?: string
+          publication_status?: Database["public"]["Enums"]["publication_status"]
           short_name?: string | null
           sort_order?: number
           updated_at?: string
@@ -698,20 +707,49 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "user"
       aps_rule_status: "demo" | "unverified" | "verified"
       aps_subject_rule_type:
         | "exclude"
         | "always_include"
         | "cap_points"
         | "bonus_points"
+      publication_status: "draft" | "published"
       requirement_rule_type:
         | "min_aps"
         | "subject_min_percentage"
@@ -846,6 +884,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "user"],
       aps_rule_status: ["demo", "unverified", "verified"],
       aps_subject_rule_type: [
         "exclude",
@@ -853,6 +892,7 @@ export const Constants = {
         "cap_points",
         "bonus_points",
       ],
+      publication_status: ["draft", "published"],
       requirement_rule_type: [
         "min_aps",
         "subject_min_percentage",
