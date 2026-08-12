@@ -27,6 +27,7 @@ import { Route as AuthenticatedMatchesCourseIdRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminCoursesIndexRouteImport } from './routes/_authenticated/admin/courses/index'
 import { Route as AuthenticatedAdminCoursesCourseIdRouteImport } from './routes/_authenticated/admin/courses/$courseId'
 import { Route as AuthenticatedAdminProspectusesIndexRouteImport } from './routes/_authenticated/admin/prospectuses/index'
+import { Route as AuthenticatedAdminProspectusesProspectusIdRouteImport } from './routes/_authenticated/admin/prospectuses/$prospectusId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -124,6 +125,12 @@ const AuthenticatedAdminProspectusesIndexRoute =
     path: '/prospectuses/',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminProspectusesProspectusIdRoute =
+  AuthenticatedAdminProspectusesProspectusIdRouteImport.update({
+    id: '/prospectuses/$prospectusId',
+    path: '/prospectuses/$prospectusId',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -141,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/matches/': typeof AuthenticatedMatchesIndexRoute
   '/admin/courses/$courseId': typeof AuthenticatedAdminCoursesCourseIdRoute
+  '/admin/prospectuses/$prospectusId': typeof AuthenticatedAdminProspectusesProspectusIdRoute
   '/admin/courses/': typeof AuthenticatedAdminCoursesIndexRoute
   '/admin/prospectuses/': typeof AuthenticatedAdminProspectusesIndexRoute
 }
@@ -159,6 +167,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/matches': typeof AuthenticatedMatchesIndexRoute
   '/admin/courses/$courseId': typeof AuthenticatedAdminCoursesCourseIdRoute
+  '/admin/prospectuses/$prospectusId': typeof AuthenticatedAdminProspectusesProspectusIdRoute
   '/admin/courses': typeof AuthenticatedAdminCoursesIndexRoute
   '/admin/prospectuses': typeof AuthenticatedAdminProspectusesIndexRoute
 }
@@ -180,6 +189,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/matches/': typeof AuthenticatedMatchesIndexRoute
   '/_authenticated/admin/courses/$courseId': typeof AuthenticatedAdminCoursesCourseIdRoute
+  '/_authenticated/admin/prospectuses/$prospectusId': typeof AuthenticatedAdminProspectusesProspectusIdRoute
   '/_authenticated/admin/courses/': typeof AuthenticatedAdminCoursesIndexRoute
   '/_authenticated/admin/prospectuses/': typeof AuthenticatedAdminProspectusesIndexRoute
 }
@@ -201,6 +211,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/matches/'
     | '/admin/courses/$courseId'
+    | '/admin/prospectuses/$prospectusId'
     | '/admin/courses/'
     | '/admin/prospectuses/'
   fileRoutesByTo: FileRoutesByTo
@@ -219,6 +230,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/matches'
     | '/admin/courses/$courseId'
+    | '/admin/prospectuses/$prospectusId'
     | '/admin/courses'
     | '/admin/prospectuses'
   id:
@@ -239,6 +251,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/matches/'
     | '/_authenticated/admin/courses/$courseId'
+    | '/_authenticated/admin/prospectuses/$prospectusId'
     | '/_authenticated/admin/courses/'
     | '/_authenticated/admin/prospectuses/'
   fileRoutesById: FileRoutesById
@@ -380,6 +393,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminProspectusesIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/prospectuses/$prospectusId': {
+      id: '/_authenticated/admin/prospectuses/$prospectusId'
+      path: '/prospectuses/$prospectusId'
+      fullPath: '/admin/prospectuses/$prospectusId'
+      preLoaderRoute: typeof AuthenticatedAdminProspectusesProspectusIdRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
   }
 }
 
@@ -387,6 +407,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminUniversitiesRoute: typeof AuthenticatedAdminUniversitiesRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminCoursesCourseIdRoute: typeof AuthenticatedAdminCoursesCourseIdRoute
+  AuthenticatedAdminProspectusesProspectusIdRoute: typeof AuthenticatedAdminProspectusesProspectusIdRoute
   AuthenticatedAdminCoursesIndexRoute: typeof AuthenticatedAdminCoursesIndexRoute
   AuthenticatedAdminProspectusesIndexRoute: typeof AuthenticatedAdminProspectusesIndexRoute
 }
@@ -397,6 +418,8 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
     AuthenticatedAdminCoursesCourseIdRoute:
       AuthenticatedAdminCoursesCourseIdRoute,
+    AuthenticatedAdminProspectusesProspectusIdRoute:
+      AuthenticatedAdminProspectusesProspectusIdRoute,
     AuthenticatedAdminCoursesIndexRoute: AuthenticatedAdminCoursesIndexRoute,
     AuthenticatedAdminProspectusesIndexRoute:
       AuthenticatedAdminProspectusesIndexRoute,
