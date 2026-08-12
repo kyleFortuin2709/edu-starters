@@ -1,0 +1,313 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import {
+  createProspectusFileUrl,
+  createStagedCourse,
+  deleteProspectus,
+  fetchProspectus,
+  fetchStagedCourses,
+  formatFileSize,
+  INGESTION_STATUSES,
+  updateProspectus,
+  type IngestionStatus,
+  type ProspectusDocument,
+  type StagedCourse,
+} from "@/lib/prospectus";
+import { IngestionStatusPill } from "@/components/IngestionStatusPill";
+import { SelectField } from "@/components/SelectField";
+import { TextField } from "@/components/TextField";
+
+export const Route = createFileRoute("/_authenticated/admin/prospectuses/$prospectusId")({
+  head: () => ({
+    meta: [
+      { title: "Prospectus review — EduStarter admin" },
+      { name: "description", content: "Review a prospectus and its staged course records." },
+      { property: "og:title", content: "Prospectus review — EduStarter admin" },
+      { property: "og:description", content: "Review staged course data before publishing." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
+  component: ProspectusDetailPage,
+});
+
+function ProspectusDetailPage() {
+  const { prospectusId } = Route.useParams();
+  const navigate = useNavigate();
+
+  const [doc, setDoc] = useState<ProspectusDocument | null>(null);
+  const [staged, setStaged] = useState<StagedCourse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [newName, setNewName] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    Promise.all([fetchProspectus(prospectusId), fetchStagedCourses(prospectusId)])
+      .then(([d, s]) => {
+        if (!active) return;
+        setDoc(d);
+        setStaged(s);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!active) return;
+        setError("We couldn't load this prospectus. Please refresh the page.");
+        setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [prospectusId]);
+
+  async function changeStatus(status: IngestionStatus) {
+    if (!doc) return;
+    setBusy(true);
+    setError("");
+    try {
+      await updateProspectus(doc.id, { status });
+      setDoc({ ...doc, status });
+      setMessage("Status updated.");
+    } catch {
+      setError("That status change couldn't be saved. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function saveNotes(notes: string) {
+    if (!doc) return;
+    setBusy(true);
+    try {
+      await updateProspectus(doc.id, { notes });
+      setDoc({ ...doc, notes });
+      setMessage("Notes saved.");
+    } catch {
+      setError("Your notes couldn't be saved. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function addStaged(event: React.FormEvent) {
+    event.preventDefault();
+    if (!doc || !newName.trim()) return;
+    setBusy(true);
+    setError("");
+    try {
+      const created = await createStagedCourse(doc.id, {
+        name: newName.trim(),
+        university_id: doc.university_id,
+      });
+      setStaged((prev) => [...prev, created]);
+      setNewName("");
+      setMessage("Staging record created. It stays separate from the live catalogue.");
+    } catch {
+      setError("That staging record couldn't be created. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function openFile() {
+    if (!doc) return;
+    const url = await createProspectusFileUrl(doc.storage_path);
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
+    else setError("We couldn't open that file right now.");
+  }
+
+  async function removeProspectus() {
+    if (!doc) return;
+    setBusy(true);
+    try {
+      await deleteProspectus(doc);
+      navigate({ to: "/admin/prospectuses" });
+    } catch {
+      setError("That prospectus couldn't be deleted. Please try again.");
+      setBusy(false);
+    }
+  }
+
+  if (loading) return <p className="mt-10 text-sm text-muted-foreground">Loading prospectus…</p>;
+  if (!doc)
+    return (
+      <p className="mt-10 rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
+        We couldn't find that prospectus.{" "}
+        <Link to="/admin/prospectuses" className="font-semibold underline">
+          Back to prospectuses
+        </Link>
+      </p>
+    );
+
+  return (
+    <section className="pb-16">
+      <Link
+        to="/admin/prospectuses"
+        className="mt-8 inline-block font-mono text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground"
+      >
+        ← All prospectuses
+      </Link>
+
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <h1 className="font-display text-4xl font-semibold tracking-tight">{doc.title}</h1>
+        <IngestionStatusPill status={doc.status} />
+      </div>
+      <p className="mt-2 text-sm text-muted-foreground">
+        {[
+          doc.universities?.name ?? "No university linked",
+          doc.academic_year,
+          doc.file_name,
+          formatFileSize(doc.file_size),
+        ]
+          .filter(Boolean)
+          .join(" · ")}
+      </p>
+
+      {error && (
+        <p className="mt-6 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+          {error}
+        </p>
+      )}
+      {message && !error && (
+        <p className="mt-6 rounded-2xl border border-success/30 bg-success/5 p-4 text-sm text-success">
+          {message}
+        </p>
+      )}
+
+      <div className="mt-8 grid gap-6 lg:grid-cols-[2fr_1fr]">
+        <div className="rounded-[2rem] border border-border bg-card p-6 md:p-8">
+          <h2 className="font-display text-2xl font-semibold">Processing status</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Move the document through the review workflow by hand. Automated extraction will set
+            these statuses later.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            {INGESTION_STATUSES.map((s) => (
+              <button
+                key={s.value}
+                type="button"
+                disabled={busy || doc.status === s.value}
+                onClick={() => changeStatus(s.value)}
+                className={
+                  doc.status === s.value
+                    ? "rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background"
+                    : "rounded-full border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
+                }
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+
+          <label
+            htmlFor="prospectus-notes"
+            className="mt-8 block text-sm font-semibold text-foreground"
+          >
+            Review notes
+          </label>
+          <textarea
+            id="prospectus-notes"
+            defaultValue={doc.notes ?? ""}
+            rows={4}
+            onBlur={(e) => saveNotes(e.target.value)}
+            placeholder="What still needs checking in this document?"
+            className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10"
+          />
+          <p className="mt-1.5 text-xs text-muted-foreground">Notes save when you click away.</p>
+        </div>
+
+        <div className="rounded-[2rem] border border-border bg-card p-6 md:p-8">
+          <h2 className="font-display text-2xl font-semibold">Document</h2>
+          <button
+            type="button"
+            onClick={openFile}
+            className="mt-4 w-full rounded-full border border-border px-4 py-2.5 text-sm font-semibold hover:bg-secondary"
+          >
+            Open PDF
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={removeProspectus}
+            className="mt-3 w-full rounded-full border border-destructive/40 px-4 py-2.5 text-sm font-semibold text-destructive hover:bg-destructive/5 disabled:opacity-60"
+          >
+            Delete prospectus
+          </button>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Deleting removes the file and every staged record created from it. Live courses are
+            never affected.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-10 rounded-[2rem] border border-border bg-card p-6 md:p-8">
+        <h2 className="font-display text-2xl font-semibold">Staged courses</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Staged records are a safe scratch space. They are never shown to students and are not part
+          of the live course database.
+        </p>
+
+        <form onSubmit={addStaged} className="mt-6 flex flex-wrap items-end gap-3">
+          <div className="min-w-[16rem] flex-1">
+            <TextField
+              id="staged-name"
+              label="New staged course name"
+              placeholder="e.g. Bachelor of Science"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={busy || !newName.trim()}
+            className="rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-background hover:bg-primary disabled:opacity-60"
+          >
+            Create staging record
+          </button>
+        </form>
+
+        {staged.length === 0 ? (
+          <p className="mt-6 rounded-2xl border border-border bg-background p-6 text-sm text-muted-foreground">
+            No staged courses yet. Create one above to start capturing course information for
+            review.
+          </p>
+        ) : (
+          <div className="mt-6 space-y-3">
+            {staged.map((s) => (
+              <article
+                key={s.id}
+                className="rounded-2xl border border-border bg-background p-5 md:flex md:items-center md:justify-between md:gap-6"
+              >
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-semibold">{s.name}</h3>
+                    <IngestionStatusPill status={s.status} />
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {[
+                      s.faculty_name,
+                      s.qualification_name,
+                      s.aps_requirement != null ? `APS ${s.aps_requirement}` : null,
+                      s.source_page != null ? `Page ${s.source_page}` : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ") || "No details captured yet"}
+                  </p>
+                </div>
+                <Link
+                  to="/admin/staged/$stagedId"
+                  params={{ stagedId: s.id }}
+                  className="mt-3 inline-block rounded-full border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary md:mt-0 md:shrink-0"
+                >
+                  View & edit
+                </Link>
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
