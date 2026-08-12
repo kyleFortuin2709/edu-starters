@@ -1,24 +1,150 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { SiteLayout } from "@/components/SiteLayout";
+import { CourseCard, type Course } from "@/components/CourseCard";
+import platformImage from "@/assets/platform-interface.jpg";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "EduStarter — Match your NSC results to SA university courses" },
+      {
+        name: "description",
+        content:
+          "EduStarter turns your NSC marks into a clear list of South African university courses you qualify for, almost qualify for, or should plan around.",
+      },
+      { property: "og:title", content: "EduStarter — Match your NSC results to SA university courses" },
+      {
+        property: "og:description",
+        content:
+          "Match your matric marks with South African university degrees and see exactly where you qualify.",
+      },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
+const previewCourses: Course[] = [
+  {
+    institution: "Wits University",
+    name: "BSc Computer Science",
+    summary: "Entry point score met. You have a high probability of acceptance.",
+    aps: 42,
+    delta: "+5 Above",
+    status: "qualify",
+  },
+  {
+    institution: "UP — Tukkies",
+    name: "BA Law",
+    summary: "Just 2 points shy. Consider a re-mark or an extended programme.",
+    aps: 34,
+    delta: "-2 Points",
+    status: "almost",
+  },
+];
+
 function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <SiteLayout>
+      <section className="mx-auto max-w-7xl px-6 pb-16 pt-20 text-center md:pt-24">
+        <div className="rise mb-6 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary">
+          <span className="size-2 animate-pulse rounded-full bg-primary" aria-hidden="true" />
+          2026 Applications Open
+        </div>
+        <h1 className="rise mx-auto max-w-4xl text-balance font-display text-5xl font-semibold leading-[1.1] tracking-tight md:text-7xl [animation-delay:100ms]">
+          Your NSC results are a <span className="italic text-primary">roadmap</span>, not a barrier.
+        </h1>
+        <p className="rise mx-auto mt-8 max-w-2xl text-pretty text-xl text-muted-foreground [animation-delay:200ms]">
+          Instantly match your matric marks with thousands of South African university degrees and find
+          exactly where you qualify.
+        </p>
+        <div className="rise mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row [animation-delay:300ms]">
+          <Link
+            to="/signup"
+            className="w-full rounded-2xl bg-primary px-8 py-4 text-lg font-bold text-primary-foreground shadow-xl shadow-primary/20 transition-transform hover:scale-[1.02] sm:w-auto"
+          >
+            Start My Assessment
+          </Link>
+          <Link
+            to="/login"
+            className="w-full rounded-2xl border border-border bg-card px-8 py-4 text-lg font-bold transition-colors hover:bg-secondary sm:w-auto"
+          >
+            View All Courses
+          </Link>
+        </div>
+      </section>
+
+      <section id="how-it-works" className="mx-auto max-w-7xl border-t border-border px-6 py-24">
+        <div className="mb-12 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+          <div className="max-w-xl">
+            <h2 className="mb-4 font-display text-3xl font-semibold">Clear status, zero guesswork</h2>
+            <p className="text-muted-foreground">
+              We translate complex university entry requirements into three simple categories.
+            </p>
+          </div>
+          <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+            Module Preview / 01
+          </div>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-3">
+          {previewCourses.map((course) => (
+            <CourseCard key={course.name} course={course} />
+          ))}
+
+          <div className="flex flex-col items-center justify-center rounded-[2rem] border border-transparent bg-surface-muted p-8 text-center">
+            <div className="mb-4 grid size-16 place-items-center rounded-full bg-card shadow-sm">
+              <div className="size-8 rounded-lg border-2 border-dashed border-border" />
+            </div>
+            <h3 className="mb-2 font-display text-xl font-semibold">Your Dashboard</h3>
+            <p className="px-4 text-sm text-muted-foreground">
+              Sign up to save your results and track your application statuses.
+            </p>
+            <Link to="/signup" className="mt-6 text-sm font-bold text-primary underline underline-offset-4">
+              Create Profile
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section id="universities" className="bg-foreground py-24 text-background">
+        <div className="mx-auto grid max-w-7xl items-center gap-16 px-6 md:grid-cols-2 md:gap-24">
+          <img
+            src={platformImage}
+            alt="EduStarter dashboard showing academic progress and course matches"
+            width={1200}
+            height={1008}
+            loading="lazy"
+            className="aspect-square w-full rounded-3xl object-cover outline outline-1 -outline-offset-1 outline-background/10"
+          />
+          <div>
+            <h2 className="mb-8 font-display text-4xl font-semibold leading-tight">
+              One profile. <br />
+              Every institution.
+            </h2>
+            <div className="space-y-12">
+              <div className="flex gap-6">
+                <div className="font-display text-3xl italic text-primary">01</div>
+                <div>
+                  <h3 className="mb-2 text-lg font-bold">Smart APS Calculator</h3>
+                  <p className="text-background/60">
+                    Input your marks once. We calculate your APS for every university in South Africa
+                    automatically.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-6">
+                <div className="font-display text-3xl italic text-primary">02</div>
+                <div>
+                  <h3 className="mb-2 text-lg font-bold">Pathway Support</h3>
+                  <p className="text-background/60">
+                    Didn't get the marks you needed? We suggest bridge programmes and TVET alternatives.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </SiteLayout>
   );
 }
