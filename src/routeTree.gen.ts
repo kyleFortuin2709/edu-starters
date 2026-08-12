@@ -21,6 +21,7 @@ import { Route as AuthenticatedProfileSetupRouteImport } from './routes/_authent
 import { Route as AuthenticatedResultsRouteImport } from './routes/_authenticated/results'
 import { Route as AuthenticatedSavedRouteImport } from './routes/_authenticated/saved'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as AuthenticatedAdminUniversitiesRouteImport } from './routes/_authenticated/admin/universities'
 import { Route as AuthenticatedMatchesIndexRouteImport } from './routes/_authenticated/matches/index'
 import { Route as AuthenticatedMatchesCourseIdRouteImport } from './routes/_authenticated/matches/$courseId'
 
@@ -84,6 +85,12 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminUniversitiesRoute =
+  AuthenticatedAdminUniversitiesRouteImport.update({
+    id: '/universities',
+    path: '/universities',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedMatchesIndexRoute =
   AuthenticatedMatchesIndexRouteImport.update({
     id: '/matches/',
@@ -108,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/profile-setup': typeof AuthenticatedProfileSetupRoute
   '/results': typeof AuthenticatedResultsRoute
   '/saved': typeof AuthenticatedSavedRoute
+  '/admin/universities': typeof AuthenticatedAdminUniversitiesRoute
   '/matches/$courseId': typeof AuthenticatedMatchesCourseIdRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/matches/': typeof AuthenticatedMatchesIndexRoute
@@ -122,6 +130,7 @@ export interface FileRoutesByTo {
   '/profile-setup': typeof AuthenticatedProfileSetupRoute
   '/results': typeof AuthenticatedResultsRoute
   '/saved': typeof AuthenticatedSavedRoute
+  '/admin/universities': typeof AuthenticatedAdminUniversitiesRoute
   '/matches/$courseId': typeof AuthenticatedMatchesCourseIdRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/matches': typeof AuthenticatedMatchesIndexRoute
@@ -139,6 +148,7 @@ export interface FileRoutesById {
   '/_authenticated/profile-setup': typeof AuthenticatedProfileSetupRoute
   '/_authenticated/results': typeof AuthenticatedResultsRoute
   '/_authenticated/saved': typeof AuthenticatedSavedRoute
+  '/_authenticated/admin/universities': typeof AuthenticatedAdminUniversitiesRoute
   '/_authenticated/matches/$courseId': typeof AuthenticatedMatchesCourseIdRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/matches/': typeof AuthenticatedMatchesIndexRoute
@@ -156,6 +166,7 @@ export interface FileRouteTypes {
     | '/profile-setup'
     | '/results'
     | '/saved'
+    | '/admin/universities'
     | '/matches/$courseId'
     | '/admin/'
     | '/matches/'
@@ -170,6 +181,7 @@ export interface FileRouteTypes {
     | '/profile-setup'
     | '/results'
     | '/saved'
+    | '/admin/universities'
     | '/matches/$courseId'
     | '/admin'
     | '/matches'
@@ -186,6 +198,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile-setup'
     | '/_authenticated/results'
     | '/_authenticated/saved'
+    | '/_authenticated/admin/universities'
     | '/_authenticated/matches/$courseId'
     | '/_authenticated/admin/'
     | '/_authenticated/matches/'
@@ -286,6 +299,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/universities': {
+      id: '/_authenticated/admin/universities'
+      path: '/universities'
+      fullPath: '/admin/universities'
+      preLoaderRoute: typeof AuthenticatedAdminUniversitiesRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/matches/': {
       id: '/_authenticated/matches/'
       path: '/matches'
@@ -304,11 +324,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteRouteChildren {
+  AuthenticatedAdminUniversitiesRoute: typeof AuthenticatedAdminUniversitiesRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
   {
+    AuthenticatedAdminUniversitiesRoute: AuthenticatedAdminUniversitiesRoute,
     AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   }
 
