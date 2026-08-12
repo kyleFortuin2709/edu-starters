@@ -77,11 +77,11 @@ function Index() {
           <div className="max-w-xl">
             <h2 className="mb-4 font-display text-3xl font-semibold">Clear status, zero guesswork</h2>
             <p className="text-muted-foreground">
-              We translate complex university entry requirements into three simple categories.
+              EduStarter will translate published university entry requirements into three simple categories: qualify, almost qualify, and don't qualify.
             </p>
           </div>
           <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-            Module Preview / 01
+            Demo Preview / 01
           </div>
         </div>
 
@@ -96,7 +96,7 @@ function Index() {
             </div>
             <h3 className="mb-2 font-display text-xl font-semibold">Your Dashboard</h3>
             <p className="px-4 text-sm text-muted-foreground">
-              Sign up to save your results and track your application statuses.
+              Sign up to save your results and explore how EduStarter will work.
             </p>
             <Link to="/signup" className="mt-6 text-sm font-bold text-primary underline underline-offset-4">
               Create Profile
