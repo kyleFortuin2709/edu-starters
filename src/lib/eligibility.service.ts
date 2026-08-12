@@ -62,7 +62,11 @@ export async function evaluateMyEligibility(
     if (!calculation) {
       calculation = calculateAps(
         rule,
-        results.map((r) => ({ subjectId: r.subjectId, mark: r.mark })),
+        results.map((r) => ({
+          subjectId: r.subjectId,
+          mark: r.mark,
+          ...(r.subjectName ? { subjectName: r.subjectName } : {}),
+        })),
       );
       apsByRule.set(ruleId, calculation);
     }

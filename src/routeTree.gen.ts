@@ -18,6 +18,8 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedProfileSetupRouteImport } from './routes/_authenticated/profile-setup'
 import { Route as AuthenticatedResultsRouteImport } from './routes/_authenticated/results'
+import { Route as AuthenticatedMatchesIndexRouteImport } from './routes/_authenticated/matches/index'
+import { Route as AuthenticatedMatchesCourseIdRouteImport } from './routes/_authenticated/matches/$courseId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -64,6 +66,18 @@ const AuthenticatedResultsRoute = AuthenticatedResultsRouteImport.update({
   path: '/results',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMatchesIndexRoute =
+  AuthenticatedMatchesIndexRouteImport.update({
+    id: '/matches/',
+    path: '/matches/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMatchesCourseIdRoute =
+  AuthenticatedMatchesCourseIdRouteImport.update({
+    id: '/matches/$courseId',
+    path: '/matches/$courseId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -74,6 +88,8 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile-setup': typeof AuthenticatedProfileSetupRoute
   '/results': typeof AuthenticatedResultsRoute
+  '/matches/$courseId': typeof AuthenticatedMatchesCourseIdRoute
+  '/matches/': typeof AuthenticatedMatchesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -84,6 +100,8 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile-setup': typeof AuthenticatedProfileSetupRoute
   '/results': typeof AuthenticatedResultsRoute
+  '/matches/$courseId': typeof AuthenticatedMatchesCourseIdRoute
+  '/matches': typeof AuthenticatedMatchesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -96,6 +114,8 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/profile-setup': typeof AuthenticatedProfileSetupRoute
   '/_authenticated/results': typeof AuthenticatedResultsRoute
+  '/_authenticated/matches/$courseId': typeof AuthenticatedMatchesCourseIdRoute
+  '/_authenticated/matches/': typeof AuthenticatedMatchesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -108,6 +128,8 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile-setup'
     | '/results'
+    | '/matches/$courseId'
+    | '/matches/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -118,6 +140,8 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile-setup'
     | '/results'
+    | '/matches/$courseId'
+    | '/matches'
   id:
     | '__root__'
     | '/'
@@ -129,6 +153,8 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/profile-setup'
     | '/_authenticated/results'
+    | '/_authenticated/matches/$courseId'
+    | '/_authenticated/matches/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -205,6 +231,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedResultsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/matches/': {
+      id: '/_authenticated/matches/'
+      path: '/matches'
+      fullPath: '/matches/'
+      preLoaderRoute: typeof AuthenticatedMatchesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/matches/$courseId': {
+      id: '/_authenticated/matches/$courseId'
+      path: '/matches/$courseId'
+      fullPath: '/matches/$courseId'
+      preLoaderRoute: typeof AuthenticatedMatchesCourseIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -212,12 +252,16 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedProfileSetupRoute: typeof AuthenticatedProfileSetupRoute
   AuthenticatedResultsRoute: typeof AuthenticatedResultsRoute
+  AuthenticatedMatchesCourseIdRoute: typeof AuthenticatedMatchesCourseIdRoute
+  AuthenticatedMatchesIndexRoute: typeof AuthenticatedMatchesIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedProfileSetupRoute: AuthenticatedProfileSetupRoute,
   AuthenticatedResultsRoute: AuthenticatedResultsRoute,
+  AuthenticatedMatchesCourseIdRoute: AuthenticatedMatchesCourseIdRoute,
+  AuthenticatedMatchesIndexRoute: AuthenticatedMatchesIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
