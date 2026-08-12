@@ -96,6 +96,16 @@ function AdminOverviewPage() {
                 Edit course details, entry requirements, active status and publication state.
               </p>
             </Link>
+            <Link
+              to="/admin/prospectuses"
+              className="rounded-[2rem] border border-border bg-card p-8 transition-colors hover:bg-secondary md:col-span-2"
+            >
+              <h2 className="font-display text-2xl font-semibold">Prospectuses & staging</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Upload prospectus PDFs and capture course information into a staging area for human
+                review. Staged data is kept completely separate from the live catalogue.
+              </p>
+            </Link>
           </div>
         </>
       )}
