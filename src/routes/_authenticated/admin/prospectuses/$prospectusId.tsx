@@ -256,8 +256,20 @@ function ProspectusDetailPage() {
           <h2 className="font-display text-2xl font-semibold">Document</h2>
           <button
             type="button"
+            onClick={runExtraction}
+            disabled={extracting || busy}
+            className="mt-4 w-full rounded-full bg-foreground px-4 py-2.5 text-sm font-semibold text-background hover:bg-primary disabled:opacity-60"
+          >
+            {extracting ? "Reading document…" : "Extract with AI"}
+          </button>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Extraction only creates staged records for review. Missing or unclear details are
+            flagged instead of guessed, and nothing reaches the live catalogue.
+          </p>
+          <button
+            type="button"
             onClick={openFile}
-            className="mt-4 w-full rounded-full border border-border px-4 py-2.5 text-sm font-semibold hover:bg-secondary"
+            className="mt-3 w-full rounded-full border border-border px-4 py-2.5 text-sm font-semibold hover:bg-secondary"
           >
             Open PDF
           </button>
@@ -275,6 +287,42 @@ function ProspectusDetailPage() {
           </p>
         </div>
       </div>
+
+      {(doc.extracted_at || doc.error_message) && (
+        <div className="mt-6 rounded-[2rem] border border-border bg-card p-6 md:p-8">
+          <h2 className="font-display text-2xl font-semibold">AI extraction</h2>
+          {doc.error_message && (
+            <p className="mt-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+              Last run reported: {doc.error_message}
+            </p>
+          )}
+          {doc.extracted_at && (
+            <p className="mt-3 text-sm text-muted-foreground">
+              Last run {new Date(doc.extracted_at).toLocaleString()}
+              {doc.extraction_model ? ` · ${doc.extraction_model}` : ""}
+              {doc.extraction_payload?.university_name
+                ? ` · University detected: ${doc.extraction_payload.university_name}`
+                : ""}
+            </p>
+          )}
+          {doc.extraction_payload?.document_flags?.length ? (
+            <div className="mt-4">
+              <h3 className="text-sm font-semibold">Needs human review</h3>
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                {doc.extraction_payload.document_flags.map((flag) => (
+                  <li key={flag}>{flag}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          <div className="mt-5">
+            <h3 className="text-sm font-semibold">APS calculation methodology found</h3>
+            <p className="mt-2 whitespace-pre-wrap rounded-2xl border border-border bg-background p-4 text-sm text-muted-foreground">
+              {doc.aps_methodology_text ?? "No APS methodology was found in this document."}
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="mt-10 rounded-[2rem] border border-border bg-card p-6 md:p-8">
         <h2 className="font-display text-2xl font-semibold">Staged courses</h2>
