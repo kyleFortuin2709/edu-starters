@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";
+import { useIsAdmin } from "@/lib/use-admin";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -13,6 +14,7 @@ const navLinks = [
 
 export function SiteHeader() {
   const { user, signOut } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const [open, setOpen] = useState(false);
 
   return (
@@ -34,6 +36,11 @@ export function SiteHeader() {
               <Link to="/dashboard" className="text-sm font-semibold hover:text-primary">
                 Dashboard
               </Link>
+              {isAdmin && (
+                <Link to="/admin" className="text-sm font-semibold hover:text-primary">
+                  Admin
+                </Link>
+              )}
               <button
                 onClick={signOut}
                 className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-primary"
@@ -79,6 +86,11 @@ export function SiteHeader() {
                 <Link to="/dashboard" onClick={() => setOpen(false)} className="font-semibold text-foreground">
                   Dashboard
                 </Link>
+                {isAdmin && (
+                  <Link to="/admin" onClick={() => setOpen(false)} className="font-semibold text-foreground">
+                    Admin
+                  </Link>
+                )}
                 <button onClick={signOut} className="text-left font-semibold text-foreground">
                   Log out
                 </button>
