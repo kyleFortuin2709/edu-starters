@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { EligibilityStatusBadge } from "@/components/EligibilityStatusBadge";
+import { SaveCourseButton } from "@/components/SaveCourseButton";
 import { STATUS_TONE, summarizeGap } from "@/lib/eligibility-format";
 import type { CourseEligibilityView } from "@/lib/eligibility-view";
 
@@ -24,7 +25,10 @@ export function EligibilityCourseCard({
         className,
       )}
     >
-      <EligibilityStatusBadge status={course.status} className="absolute right-8 top-6" />
+      <div className="absolute right-8 top-6 flex flex-col items-end gap-3">
+        <EligibilityStatusBadge status={course.status} />
+        <SaveCourseButton courseId={course.courseId} />
+      </div>
 
       <p className="mb-4 max-w-[70%] font-mono text-xs uppercase text-muted-foreground">
         {course.universityName ?? "Institution"}
