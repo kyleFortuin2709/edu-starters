@@ -16,6 +16,7 @@ import {
 import { IngestionStatusPill } from "@/components/IngestionStatusPill";
 import { SelectField } from "@/components/SelectField";
 import { TextField } from "@/components/TextField";
+import { extractProspectus } from "@/lib/prospectus-extract.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/prospectuses/$prospectusId")({
   head: () => ({
@@ -41,6 +42,39 @@ function ProspectusDetailPage() {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [newName, setNewName] = useState("");
+  const [extracting, setExtracting] = useState(false);
+
+  async function runExtraction() {
+    if (!doc) return;
+    setExtracting(true);
+    setError("");
+    setMessage("");
+    setDoc({ ...doc, status: "processing" });
+    try {
+      const result = await extractProspectus({ data: { prospectusId: doc.id } });
+      const [refreshed, stagedRows] = await Promise.all([
+        fetchProspectus(doc.id),
+        fetchStagedCourses(doc.id),
+      ]);
+      setDoc(refreshed);
+      setStaged(stagedRows);
+      setMessage(
+        `${result.stagedCount} course${result.stagedCount === 1 ? "" : "s"} staged for review.` +
+          (result.apsMethodologyFound ? " APS methodology text was captured." : "") +
+          " Nothing was written to the live catalogue.",
+      );
+    } catch (err) {
+      const refreshed = await fetchProspectus(doc.id).catch(() => null);
+      if (refreshed) setDoc(refreshed);
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : "We couldn't analyse that document. Please try again.",
+      );
+    } finally {
+      setExtracting(false);
+    }
+  }
 
   useEffect(() => {
     let active = true;
