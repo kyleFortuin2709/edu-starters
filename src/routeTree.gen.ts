@@ -18,6 +18,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedProfileSetupRouteImport } from './routes/_authenticated/profile-setup'
 import { Route as AuthenticatedResultsRouteImport } from './routes/_authenticated/results'
+import { Route as AuthenticatedSavedRouteImport } from './routes/_authenticated/saved'
 import { Route as AuthenticatedMatchesIndexRouteImport } from './routes/_authenticated/matches/index'
 import { Route as AuthenticatedMatchesCourseIdRouteImport } from './routes/_authenticated/matches/$courseId'
 
@@ -66,6 +67,11 @@ const AuthenticatedResultsRoute = AuthenticatedResultsRouteImport.update({
   path: '/results',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSavedRoute = AuthenticatedSavedRouteImport.update({
+  id: '/saved',
+  path: '/saved',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMatchesIndexRoute =
   AuthenticatedMatchesIndexRouteImport.update({
     id: '/matches/',
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile-setup': typeof AuthenticatedProfileSetupRoute
   '/results': typeof AuthenticatedResultsRoute
+  '/saved': typeof AuthenticatedSavedRoute
   '/matches/$courseId': typeof AuthenticatedMatchesCourseIdRoute
   '/matches/': typeof AuthenticatedMatchesIndexRoute
 }
@@ -100,6 +107,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile-setup': typeof AuthenticatedProfileSetupRoute
   '/results': typeof AuthenticatedResultsRoute
+  '/saved': typeof AuthenticatedSavedRoute
   '/matches/$courseId': typeof AuthenticatedMatchesCourseIdRoute
   '/matches': typeof AuthenticatedMatchesIndexRoute
 }
@@ -114,6 +122,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/profile-setup': typeof AuthenticatedProfileSetupRoute
   '/_authenticated/results': typeof AuthenticatedResultsRoute
+  '/_authenticated/saved': typeof AuthenticatedSavedRoute
   '/_authenticated/matches/$courseId': typeof AuthenticatedMatchesCourseIdRoute
   '/_authenticated/matches/': typeof AuthenticatedMatchesIndexRoute
 }
@@ -128,6 +137,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile-setup'
     | '/results'
+    | '/saved'
     | '/matches/$courseId'
     | '/matches/'
   fileRoutesByTo: FileRoutesByTo
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile-setup'
     | '/results'
+    | '/saved'
     | '/matches/$courseId'
     | '/matches'
   id:
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/profile-setup'
     | '/_authenticated/results'
+    | '/_authenticated/saved'
     | '/_authenticated/matches/$courseId'
     | '/_authenticated/matches/'
   fileRoutesById: FileRoutesById
@@ -231,6 +243,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedResultsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/saved': {
+      id: '/_authenticated/saved'
+      path: '/saved'
+      fullPath: '/saved'
+      preLoaderRoute: typeof AuthenticatedSavedRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/matches/': {
       id: '/_authenticated/matches/'
       path: '/matches'
@@ -252,6 +271,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedProfileSetupRoute: typeof AuthenticatedProfileSetupRoute
   AuthenticatedResultsRoute: typeof AuthenticatedResultsRoute
+  AuthenticatedSavedRoute: typeof AuthenticatedSavedRoute
   AuthenticatedMatchesCourseIdRoute: typeof AuthenticatedMatchesCourseIdRoute
   AuthenticatedMatchesIndexRoute: typeof AuthenticatedMatchesIndexRoute
 }
@@ -260,6 +280,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedProfileSetupRoute: AuthenticatedProfileSetupRoute,
   AuthenticatedResultsRoute: AuthenticatedResultsRoute,
+  AuthenticatedSavedRoute: AuthenticatedSavedRoute,
   AuthenticatedMatchesCourseIdRoute: AuthenticatedMatchesCourseIdRoute,
   AuthenticatedMatchesIndexRoute: AuthenticatedMatchesIndexRoute,
 }
