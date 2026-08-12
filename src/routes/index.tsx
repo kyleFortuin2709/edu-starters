@@ -48,14 +48,13 @@ function Index() {
       <section className="mx-auto max-w-7xl px-6 pb-16 pt-20 text-center md:pt-24">
         <div className="rise mb-6 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary">
           <span className="size-2 animate-pulse rounded-full bg-primary" aria-hidden="true" />
-          2026 Applications Open
+          Early Prototype
         </div>
         <h1 className="rise mx-auto max-w-4xl text-balance font-display text-5xl font-semibold leading-[1.1] tracking-tight md:text-7xl [animation-delay:100ms]">
           Your NSC results are a <span className="italic text-primary">roadmap</span>, not a barrier.
         </h1>
         <p className="rise mx-auto mt-8 max-w-2xl text-pretty text-xl text-muted-foreground [animation-delay:200ms]">
-          Instantly match your matric marks with thousands of South African university degrees and find
-          exactly where you qualify.
+          Match your NSC results with university course requirements and understand where you may qualify.
         </p>
         <div className="rise mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row [animation-delay:300ms]">
           <Link
@@ -68,7 +67,7 @@ function Index() {
             to="/login"
             className="w-full rounded-2xl border border-border bg-card px-8 py-4 text-lg font-bold transition-colors hover:bg-secondary sm:w-auto"
           >
-            View All Courses
+            Sign In
           </Link>
         </div>
       </section>
