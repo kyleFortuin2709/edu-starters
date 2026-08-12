@@ -452,6 +452,65 @@ export type Database = {
           },
         ]
       }
+      prospectus_documents: {
+        Row: {
+          academic_year: string | null
+          created_at: string
+          error_message: string | null
+          file_name: string
+          file_size: number | null
+          id: string
+          notes: string | null
+          page_count: number | null
+          status: Database["public"]["Enums"]["ingestion_status"]
+          storage_path: string
+          title: string
+          university_id: string | null
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          academic_year?: string | null
+          created_at?: string
+          error_message?: string | null
+          file_name: string
+          file_size?: number | null
+          id?: string
+          notes?: string | null
+          page_count?: number | null
+          status?: Database["public"]["Enums"]["ingestion_status"]
+          storage_path: string
+          title: string
+          university_id?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          academic_year?: string | null
+          created_at?: string
+          error_message?: string | null
+          file_name?: string
+          file_size?: number | null
+          id?: string
+          notes?: string | null
+          page_count?: number | null
+          status?: Database["public"]["Enums"]["ingestion_status"]
+          storage_path?: string
+          title?: string
+          university_id?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prospectus_documents_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       provinces: {
         Row: {
           code: string
@@ -544,6 +603,94 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staged_courses: {
+        Row: {
+          application_url: string | null
+          aps_requirement: number | null
+          code: string | null
+          created_at: string
+          description: string | null
+          duration_years: number | null
+          extracted_payload: Json
+          faculty_name: string | null
+          id: string
+          name: string
+          prospectus_id: string
+          published_course_id: string | null
+          qualification_name: string | null
+          requirements_text: string | null
+          review_notes: string | null
+          source_page: number | null
+          status: Database["public"]["Enums"]["ingestion_status"]
+          university_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          application_url?: string | null
+          aps_requirement?: number | null
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          duration_years?: number | null
+          extracted_payload?: Json
+          faculty_name?: string | null
+          id?: string
+          name: string
+          prospectus_id: string
+          published_course_id?: string | null
+          qualification_name?: string | null
+          requirements_text?: string | null
+          review_notes?: string | null
+          source_page?: number | null
+          status?: Database["public"]["Enums"]["ingestion_status"]
+          university_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          application_url?: string | null
+          aps_requirement?: number | null
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          duration_years?: number | null
+          extracted_payload?: Json
+          faculty_name?: string | null
+          id?: string
+          name?: string
+          prospectus_id?: string
+          published_course_id?: string | null
+          qualification_name?: string | null
+          requirements_text?: string | null
+          review_notes?: string | null
+          source_page?: number | null
+          status?: Database["public"]["Enums"]["ingestion_status"]
+          university_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staged_courses_prospectus_id_fkey"
+            columns: ["prospectus_id"]
+            isOneToOne: false
+            referencedRelation: "prospectus_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staged_courses_published_course_id_fkey"
+            columns: ["published_course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staged_courses_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
             referencedColumns: ["id"]
           },
         ]
@@ -749,6 +896,12 @@ export type Database = {
         | "always_include"
         | "cap_points"
         | "bonus_points"
+      ingestion_status:
+        | "uploaded"
+        | "processing"
+        | "review_required"
+        | "approved"
+        | "published"
       publication_status: "draft" | "published"
       requirement_rule_type:
         | "min_aps"
@@ -891,6 +1044,13 @@ export const Constants = {
         "always_include",
         "cap_points",
         "bonus_points",
+      ],
+      ingestion_status: [
+        "uploaded",
+        "processing",
+        "review_required",
+        "approved",
+        "published",
       ],
       publication_status: ["draft", "published"],
       requirement_rule_type: [

@@ -20,6 +20,7 @@ const NAV = [
   { to: "/admin", label: "Overview", exact: true },
   { to: "/admin/universities", label: "Universities & faculties", exact: false },
   { to: "/admin/courses", label: "Courses", exact: false },
+  { to: "/admin/prospectuses", label: "Prospectuses", exact: false },
 ] as const;
 
 function AdminLayout() {
