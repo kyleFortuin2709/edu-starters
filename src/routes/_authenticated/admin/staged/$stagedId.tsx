@@ -450,6 +450,66 @@ function StagedCoursePage() {
           </button>
         </div>
       </form>
+
+      <div className="mt-8 rounded-[2rem] border border-border bg-card p-6 md:p-8">
+        <h2 className="font-display text-2xl font-semibold">Review decision</h2>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+          Approve a record once every field has been checked against the PDF. Rejecting sends it
+          back for more work. Publishing copies it into the live course database, where the
+          eligibility engine can use it — the staged record stays as the source of truth.
+        </p>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <button
+            type="button"
+            disabled={saving || publishing || hasBlockingGaps(record) || record.status === "published"}
+            onClick={() =>
+              setReviewStatus("approved", "Approved. It can now be published to the live database.")
+            }
+            className="rounded-full bg-foreground px-6 py-3 text-sm font-semibold text-background hover:bg-primary disabled:opacity-60"
+          >
+            Approve record
+          </button>
+          <button
+            type="button"
+            disabled={saving || publishing || record.status === "published"}
+            onClick={() =>
+              setReviewStatus("review_required", "Rejected. This record needs more work.")
+            }
+            className="rounded-full border border-border px-6 py-3 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
+          >
+            Reject — needs more work
+          </button>
+          <button
+            type="button"
+            disabled={saving || publishing || record.status !== "approved"}
+            onClick={publish}
+            className="rounded-full border border-success/50 bg-success/10 px-6 py-3 text-sm font-semibold text-foreground hover:bg-success/20 disabled:opacity-60"
+          >
+            {publishing ? "Publishing…" : "Publish to live database"}
+          </button>
+        </div>
+        {hasBlockingGaps(record) && (
+          <p className="mt-3 text-xs text-destructive">
+            Fill in the required fields above before this record can be approved.
+          </p>
+        )}
+        {record.status !== "approved" && record.status !== "published" && (
+          <p className="mt-3 text-xs text-muted-foreground">
+            Only approved records can be published.
+          </p>
+        )}
+        {record.published_course_id && (
+          <p className="mt-4 text-sm">
+            <Link
+              to="/admin/courses/$courseId"
+              params={{ courseId: record.published_course_id }}
+              className="font-semibold underline"
+            >
+              View the live course this record created
+            </Link>
+          </p>
+        )}
+      </div>
     </section>
   );
 }
