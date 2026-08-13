@@ -19,6 +19,7 @@ import { TextField } from "@/components/TextField";
 import { extractProspectus } from "@/lib/prospectus-extract.functions";
 import { ApsRuleReviewCard } from "@/components/ApsRuleReviewCard";
 import { InstitutionReviewCard } from "@/components/InstitutionReviewCard";
+import { FacultyReviewCard } from "@/components/FacultyReviewCard";
 import { findMissingInformation } from "@/lib/prospectus-publish";
 
 export const Route = createFileRoute("/_authenticated/admin/prospectuses/$prospectusId")({
@@ -346,8 +347,19 @@ function ProspectusDetailPage() {
         }}
       />
 
+      <FacultyReviewCard
+        prospectusId={doc.id}
+        universityId={doc.university_id}
+        staged={staged}
+        onStagedUpdated={(ids, facultyName) =>
+          setStaged((prev) =>
+            prev.map((s) => (ids.includes(s.id) ? { ...s, faculty_name: facultyName } : s)),
+          )
+        }
+      />
+
       <div className="mt-10 rounded-[2rem] border border-border bg-card p-6 md:p-8">
-        <h2 className="font-display text-2xl font-semibold">Step 2 · Staged courses</h2>
+        <h2 className="font-display text-2xl font-semibold">Step 3 · Staged courses</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           Staged records are a safe scratch space. They are never shown to students and are not part
           of the live course database.
