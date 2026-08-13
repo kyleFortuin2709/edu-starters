@@ -397,7 +397,12 @@ function ProspectusDetailPage() {
           </p>
         ) : (
           <div className="mt-6 space-y-3">
-            {staged.map((s) => (
+            {groupStagedByFaculty(staged).map(({ faculty, courses }) => (
+              <div key={faculty ?? "__none__"} className="space-y-3">
+                <h3 className="mt-6 font-mono text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  {faculty ?? "No faculty captured"} ({courses.length})
+                </h3>
+                {courses.map((s) => (
               <article
                 key={s.id}
                 className="rounded-2xl border border-border bg-background p-5 md:flex md:items-center md:justify-between md:gap-6"
@@ -431,10 +436,23 @@ function ProspectusDetailPage() {
                   View & edit
                 </Link>
               </article>
+                ))}
+              </div>
             ))}
           </div>
         )}
       </div>
     </section>
   );
+}
+
+function groupStagedByFaculty(staged: StagedCourse[]) {
+  const groups: { faculty: string | null; courses: StagedCourse[] }[] = [];
+  for (const course of staged) {
+    const faculty = course.faculty_name?.trim() || null;
+    const existing = groups.find((g) => (g.faculty ?? "") === (faculty ?? ""));
+    if (existing) existing.courses.push(course);
+    else groups.push({ faculty, courses: [course] });
+  }
+  return groups.sort((a, b) => (a.faculty ?? "zzz").localeCompare(b.faculty ?? "zzz"));
 }
