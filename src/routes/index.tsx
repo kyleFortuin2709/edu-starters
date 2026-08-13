@@ -108,8 +108,8 @@ function Index() {
       <section id="universities" className="bg-foreground py-24 text-background">
         <div className="mx-auto grid max-w-7xl items-center gap-16 px-6 md:grid-cols-2 md:gap-24">
           <img
-            src={platformImage}
-            alt="Demo preview of the EduStarter dashboard concept"
+            src={platformImage.url}
+            alt="A young South African student on a university campus, ready to explore course options"
             width={1200}
             height={1008}
             loading="lazy"
