@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import {
   applyFacultyToGroup,
   createFaculty,
@@ -31,6 +32,8 @@ export function FacultyReviewCard({ prospectusId, universityId, staged, onStaged
   const [busyKey, setBusyKey] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [collapsed, setCollapsed] = useState(false);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     let active = true;
@@ -47,6 +50,11 @@ export function FacultyReviewCard({ prospectusId, universityId, staged, onStaged
   }, [universityId]);
 
   const groups = groupByFaculty(staged, faculties);
+
+  const notLiveCount = groups.filter((g) => {
+    const f = g.match;
+    return !f || f.publication_status !== "published" || !f.is_active;
+  }).length;
 
   async function apply(key: string, group: (typeof groups)[number]) {
     if (!universityId) return;
@@ -95,23 +103,63 @@ export function FacultyReviewCard({ prospectusId, universityId, staged, onStaged
   }
 
   return (
-    <div className="mt-10 rounded-[2rem] border border-border bg-card p-6 md:p-8">
-      <h2 className="font-display text-2xl font-semibold">Step 2 · Faculties</h2>
-      <p className="mt-2 text-sm text-muted-foreground">
+    <div
+      className={`mt-10 rounded-[2rem] border bg-card p-6 md:p-8 ${
+        collapsed && notLiveCount > 0 ? "border-warning/50 bg-warning/5" : "border-border"
+      }`}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="font-display text-2xl font-semibold">Step 2 · Faculties</h2>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {notLiveCount > 0 ? (
+              <span className="rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-xs font-semibold text-warning-foreground">
+                {notLiveCount} facult{notLiveCount === 1 ? "y" : "ies"} not live
+              </span>
+            ) : (
+              groups.length > 0 && (
+                <span className="rounded-full border border-success/40 bg-success/10 px-3 py-1 text-xs font-semibold text-success">
+                  All faculties live
+                </span>
+              )
+            )}
+            <span className="text-xs text-muted-foreground">
+              {groups.length} group{groups.length === 1 ? "" : "s"}
+            </span>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => setCollapsed((v) => !v)}
+          aria-expanded={!collapsed}
+          aria-label={collapsed ? "Expand faculties" : "Collapse faculties"}
+          className="rounded-full border border-border p-2 hover:bg-secondary"
+        >
+          {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+        </button>
+      </div>
+
+      {collapsed ? null : !universityId ? (
+        <>
+      <p className="mt-4 text-sm text-muted-foreground">
         Courses are grouped by the faculty wording found in the document. File each group under an
         existing faculty or create a new one — nothing reaches students until it is published.
       </p>
-
-      {!universityId ? (
         <p className="mt-6 rounded-2xl border border-border bg-background p-4 text-sm text-muted-foreground">
           Register or link the institution in Step 1 first — faculties belong to an institution.
         </p>
+        </>
       ) : staged.length === 0 ? (
         <p className="mt-6 rounded-2xl border border-border bg-background p-4 text-sm text-muted-foreground">
           No staged courses yet, so there is nothing to sort into faculties.
         </p>
       ) : (
         <>
+          <p className="mt-4 text-sm text-muted-foreground">
+            Courses are grouped by the faculty wording found in the document. File each group under
+            an existing faculty or create a new one — nothing reaches students until it is
+            published.
+          </p>
           {error && (
             <p className="mt-4 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
               {error}
@@ -128,8 +176,16 @@ export function FacultyReviewCard({ prospectusId, universityId, staged, onStaged
               const key = group.scraped ?? `__none__${index}`;
               const selected = choice[key] ?? group.match?.id ?? (group.scraped ? "__new__" : "");
               const chosenFaculty = faculties.find((f) => f.id === selected) ?? null;
+              const isLive =
+                !!group.match && group.match.publication_status === "published" && group.match.is_active;
+              const open = openGroups[key] ?? !isLive;
               return (
-                <article key={key} className="rounded-2xl border border-border bg-background p-5">
+                <article
+                  key={key}
+                  className={`rounded-2xl border bg-background p-5 ${
+                    isLive ? "border-border" : "border-warning/50"
+                  }`}
+                >
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <h3 className="font-semibold">
@@ -142,9 +198,26 @@ export function FacultyReviewCard({ prospectusId, universityId, staged, onStaged
                           : "No matching faculty yet"}
                       </p>
                     </div>
-                    {chosenFaculty && <PublicationPill status={chosenFaculty.publication_status} />}
+                    <div className="flex items-center gap-2">
+                      {chosenFaculty && <PublicationPill status={chosenFaculty.publication_status} />}
+                      {!isLive && (
+                        <span className="rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-xs font-semibold text-warning-foreground">
+                          Not live
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setOpenGroups((prev) => ({ ...prev, [key]: !open }))}
+                        aria-expanded={open}
+                        aria-label={open ? "Collapse faculty group" : "Expand faculty group"}
+                        className="rounded-full border border-border p-1.5 hover:bg-secondary"
+                      >
+                        {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      </button>
+                    </div>
                   </div>
-
+                  {open && (
+                  <>
                   <ul className="mt-3 flex flex-wrap gap-2">
                     {group.courses.slice(0, 6).map((c) => (
                       <li
@@ -210,6 +283,8 @@ export function FacultyReviewCard({ prospectusId, universityId, staged, onStaged
                       </button>
                     )}
                   </div>
+                  </>
+                  )}
                 </article>
               );
             })}
