@@ -8,8 +8,8 @@ import { cn } from "@/lib/utils";
 
 const navLinks = [
   { label: "How it works", to: "/#how-it-works" },
-  { label: "Universities", to: "/#universities" },
-  { label: "Resources", to: "/#resources" },
+  { label: "Why EduStarter", to: "/#features" },
+  { label: "Get started", to: "/#cta" },
 ];
 
 export function SiteHeader() {
