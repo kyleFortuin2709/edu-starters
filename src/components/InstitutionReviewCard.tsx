@@ -282,7 +282,17 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
   return (
     <div className="mt-10 rounded-[2rem] border border-border bg-card p-6 md:p-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-2xl font-semibold">Step 1 · Institution</h2>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setCollapsed((c) => !c)}
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-border hover:bg-secondary"
+            aria-label={collapsed ? "Expand institution section" : "Collapse institution section"}
+          >
+            {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+          </button>
+          <h2 className="font-display text-2xl font-semibold">Step 1 · Institution</h2>
+        </div>
         {linked && (
           <span className="flex gap-2">
             <PublicationPill status={linked.publication_status} />
@@ -295,111 +305,115 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
         here fills in the university for every staged course from this document.
       </p>
 
-      {error && (
-        <p className="mt-4 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-          {error}
-        </p>
-      )}
-      {message && !error && (
-        <p className="mt-4 rounded-2xl border border-success/30 bg-success/5 p-4 text-sm text-success">
-          {message}
-        </p>
-      )}
-
-      {!linked && detectedName && (
-        <p className="mt-4 rounded-2xl border border-border bg-background p-4 text-sm text-muted-foreground">
-          Detected in the document: <span className="font-semibold text-foreground">{detectedName}</span>
-          {proposal?.institution_type ? ` · ${proposal.institution_type}` : ""}
-          {proposal?.city ? ` · ${proposal.city}` : ""}
-          {proposal?.province ? ` · ${proposal.province}` : ""}
-        </p>
-      )}
-      {!linked && proposal?.notes?.length ? (
-        <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-          {proposal.notes.map((note) => (
-            <li key={note}>{note}</li>
-          ))}
-        </ul>
-      ) : null}
-
-      {linked ? (
-        <form onSubmit={handleSave}>
-          {fields}
-          <div className="mt-5 flex flex-wrap gap-3">
-            <button
-              type="submit"
-              disabled={busy}
-              className="rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background hover:bg-primary disabled:opacity-60"
-            >
-              Save institution details
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={togglePublication}
-              className="rounded-full border border-border px-5 py-2.5 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
-            >
-              {linked.publication_status === "published" ? "Move back to draft" : "Publish institution"}
-            </button>
-          </div>
-        </form>
-      ) : (
+      {!collapsed && (
         <>
-          <div className="mt-5 flex gap-2">
-            {(["create", "existing"] as const).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setMode(m)}
-                className={
-                  mode === m
-                    ? "rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background"
-                    : "rounded-full border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary"
-                }
-              >
-                {m === "create" ? "Register new institution" : "Link an existing one"}
-              </button>
-            ))}
-          </div>
+          {error && (
+            <p className="mt-4 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+              {error}
+            </p>
+          )}
+          {message && !error && (
+            <p className="mt-4 rounded-2xl border border-success/30 bg-success/5 p-4 text-sm text-success">
+              {message}
+            </p>
+          )}
 
-          {mode === "create" ? (
-            <form onSubmit={handleCreate}>
+          {!linked && detectedName && (
+            <p className="mt-4 rounded-2xl border border-border bg-background p-4 text-sm text-muted-foreground">
+              Detected in the document: <span className="font-semibold text-foreground">{detectedName}</span>
+              {proposal?.institution_type ? ` · ${proposal.institution_type}` : ""}
+              {proposal?.city ? ` · ${proposal.city}` : ""}
+              {proposal?.province ? ` · ${proposal.province}` : ""}
+            </p>
+          )}
+          {!linked && proposal?.notes?.length ? (
+            <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+              {proposal.notes.map((note) => (
+                <li key={note}>{note}</li>
+              ))}
+            </ul>
+          ) : null}
+
+          {linked ? (
+            <form onSubmit={handleSave}>
               {fields}
-              <button
-                type="submit"
-                disabled={busy}
-                className="mt-5 rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background hover:bg-primary disabled:opacity-60"
-              >
-                Register institution & link
-              </button>
-              <p className="mt-2 text-xs text-muted-foreground">
-                New institutions are created as drafts, so students only see them once you publish
-                them.
-              </p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <button
+                  type="submit"
+                  disabled={busy}
+                  className="rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background hover:bg-primary disabled:opacity-60"
+                >
+                  Save institution details
+                </button>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={togglePublication}
+                  className="rounded-full border border-border px-5 py-2.5 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
+                >
+                  {linked.publication_status === "published" ? "Move back to draft" : "Publish institution"}
+                </button>
+              </div>
             </form>
           ) : (
-            <form onSubmit={handleLinkExisting} className="mt-5 flex flex-wrap items-end gap-3">
-              <div className="min-w-[18rem] flex-1">
-                <SelectField
-                  id="inst-existing"
-                  label="Existing institution"
-                  placeholder="Choose an institution"
-                  options={universities.map((u) => ({
-                    value: u.id,
-                    label: `${u.name}${u.publication_status === "draft" ? " (draft)" : ""}`,
-                  }))}
-                  value={existingId}
-                  onChange={(e) => setExistingId(e.target.value)}
-                />
+            <>
+              <div className="mt-5 flex gap-2">
+                {(["create", "existing"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setMode(m)}
+                    className={
+                      mode === m
+                        ? "rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background"
+                        : "rounded-full border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary"
+                    }
+                  >
+                    {m === "create" ? "Register new institution" : "Link an existing one"}
+                  </button>
+                ))}
               </div>
-              <button
-                type="submit"
-                disabled={busy || !existingId}
-                className="rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-background hover:bg-primary disabled:opacity-60"
-              >
-                Link institution
-              </button>
-            </form>
+
+              {mode === "create" ? (
+                <form onSubmit={handleCreate}>
+                  {fields}
+                  <button
+                    type="submit"
+                    disabled={busy}
+                    className="mt-5 rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background hover:bg-primary disabled:opacity-60"
+                  >
+                    Register institution & link
+                  </button>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    New institutions are created as drafts, so students only see them once you publish
+                    them.
+                  </p>
+                </form>
+              ) : (
+                <form onSubmit={handleLinkExisting} className="mt-5 flex flex-wrap items-end gap-3">
+                  <div className="min-w-[18rem] flex-1">
+                    <SelectField
+                      id="inst-existing"
+                      label="Existing institution"
+                      placeholder="Choose an institution"
+                      options={universities.map((u) => ({
+                        value: u.id,
+                        label: `${u.name}${u.publication_status === "draft" ? " (draft)" : ""}`,
+                      }))}
+                      value={existingId}
+                      onChange={(e) => setExistingId(e.target.value)}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={busy || !existingId}
+                    className="rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-background hover:bg-primary disabled:opacity-60"
+                  >
+                    Link institution
+                  </button>
+                </form>
+              )}
+            </>
           )}
         </>
       )}
