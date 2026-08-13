@@ -35,6 +35,22 @@ export type ExtractionResult = {
   document_flags: string[];
   courses: ExtractedCourse[];
   proposed_aps: ProposedAps | null;
+  proposed_institution: ProposedInstitution | null;
+};
+
+/**
+ * Institution details the document states about itself. A PROPOSAL only: a
+ * reviewer creates or links the real institution record by hand.
+ */
+export type ProposedInstitution = {
+  name: string | null;
+  short_name: string | null;
+  institution_type: string | null;
+  city: string | null;
+  province: string | null;
+  website_url: string | null;
+  application_url: string | null;
+  notes: string[];
 };
 
 /**
@@ -62,9 +78,10 @@ Rules:
 - If the document contains a percentage-to-points table for APS, put it in proposed_aps.bands exactly as printed (one entry per band). If no such table exists, set proposed_aps to null. Never invent bands.
 - proposed_aps.counting_subject_count is how many subjects the document says are counted, or null.
 - Add anything unclear about the calculation to proposed_aps.notes.
+- In proposed_institution, copy what the document states about the institution itself: full name, short name/abbreviation, institution type (e.g. university, university of technology, TVET college), city, province, website and application URL. Use null for anything not stated and add a note to proposed_institution.notes.
 
 Respond with JSON only, matching exactly:
-{"university_name":string|null,"academic_year":string|null,"aps_methodology_text":string|null,"document_flags":string[],"proposed_aps":{"name":string|null,"counting_subject_count":number|null,"bands":[{"min_percentage":number,"max_percentage":number,"points":number,"label":string|null}],"notes":string[]}|null,"courses":[{"name":string,"code":string|null,"faculty_name":string|null,"qualification_name":string|null,"description":string|null,"duration_years":number|null,"aps_requirement":number|null,"application_url":string|null,"subject_requirements":[{"subject":string,"minimum":string|null,"note":string|null}],"requirements_text":string|null,"source_page":number|null,"confidence":"high"|"medium"|"low","review_flags":string[]}]}`;
+{"university_name":string|null,"academic_year":string|null,"aps_methodology_text":string|null,"document_flags":string[],"proposed_institution":{"name":string|null,"short_name":string|null,"institution_type":string|null,"city":string|null,"province":string|null,"website_url":string|null,"application_url":string|null,"notes":string[]}|null,"proposed_aps":{"name":string|null,"counting_subject_count":number|null,"bands":[{"min_percentage":number,"max_percentage":number,"points":number,"label":string|null}],"notes":string[]}|null,"courses":[{"name":string,"code":string|null,"faculty_name":string|null,"qualification_name":string|null,"description":string|null,"duration_years":number|null,"aps_requirement":number|null,"application_url":string|null,"subject_requirements":[{"subject":string,"minimum":string|null,"note":string|null}],"requirements_text":string|null,"source_page":number|null,"confidence":"high"|"medium"|"low","review_flags":string[]}]}`;
 
 function toBase64(bytes: Uint8Array): string {
   let binary = "";
@@ -182,6 +199,31 @@ function normaliseProposedAps(raw: unknown): ProposedAps | null {
 }
 
 function normalise(raw: unknown): ExtractionResult {
+  return normaliseResult(raw);
+}
+
+function normaliseProposedInstitution(
+  raw: unknown,
+  fallbackName: string | null,
+): ProposedInstitution | null {
+  const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  const institution: ProposedInstitution = {
+    name: asString(r["name"]) ?? fallbackName,
+    short_name: asString(r["short_name"]),
+    institution_type: asString(r["institution_type"]),
+    city: asString(r["city"]),
+    province: asString(r["province"]),
+    website_url: asString(r["website_url"]),
+    application_url: asString(r["application_url"]),
+    notes: asStringList(r["notes"]),
+  };
+  const hasAnything = Object.entries(institution).some(([key, value]) =>
+    key === "notes" ? (value as string[]).length > 0 : Boolean(value),
+  );
+  return hasAnything ? institution : null;
+}
+
+function normaliseResult(raw: unknown): ExtractionResult {
   const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
   const courses = Array.isArray(r["courses"])
     ? (r["courses"] as unknown[]).map(normaliseCourse).filter((c): c is ExtractedCourse => c !== null)
@@ -191,6 +233,9 @@ function normalise(raw: unknown): ExtractionResult {
   const proposedAps = normaliseProposedAps(r["proposed_aps"]);
   if (!proposedAps)
     documentFlags.push("No APS calculation table was found — any calculation rule must be captured by hand.");
+  const proposedInstitution = normaliseProposedInstitution(r["proposed_institution"], asString(r["university_name"]));
+  if (!proposedInstitution?.name)
+    documentFlags.push("The institution's name could not be read — capture the institution by hand before reviewing courses.");
   return {
     university_name: asString(r["university_name"]),
     academic_year: asString(r["academic_year"]),
@@ -198,6 +243,7 @@ function normalise(raw: unknown): ExtractionResult {
     document_flags: documentFlags,
     courses,
     proposed_aps: proposedAps,
+    proposed_institution: proposedInstitution,
   };
 }
 
