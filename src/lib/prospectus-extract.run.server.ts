@@ -98,6 +98,7 @@ export async function runExtractionForProspectus(input: {
           document_flags: result.document_flags,
           course_count: result.courses.length,
           proposed_aps: result.proposed_aps,
+          proposed_institution: result.proposed_institution,
         },
         error_message: null,
       })

@@ -50,6 +50,7 @@ export type ProspectusDocument = {
     document_flags?: string[];
     course_count?: number;
     proposed_aps?: ProposedApsPayload | null;
+    proposed_institution?: ProposedInstitutionPayload | null;
   } | null;
   created_at: string;
   updated_at: string;
@@ -60,6 +61,17 @@ export type ProposedApsPayload = {
   name?: string | null;
   counting_subject_count?: number | null;
   bands?: { min_percentage: number; max_percentage: number; points: number; label: string | null }[];
+  notes?: string[];
+};
+
+export type ProposedInstitutionPayload = {
+  name?: string | null;
+  short_name?: string | null;
+  institution_type?: string | null;
+  city?: string | null;
+  province?: string | null;
+  website_url?: string | null;
+  application_url?: string | null;
   notes?: string[];
 };
 
