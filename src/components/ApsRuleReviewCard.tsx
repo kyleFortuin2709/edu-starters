@@ -39,8 +39,22 @@ export function ApsRuleReviewCard({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const verified = rule?.status === "verified";
+
+  // Re-seed the editable proposal whenever a fresh extraction lands, so the
+  // form shows AI data immediately instead of only after a page reload.
+  useEffect(() => {
+    if (doc.aps_rule_id) return;
+    setName(proposal?.name ?? `${doc.title} APS calculation`);
+    setVersion(doc.academic_year ?? "v1");
+    setCounting(
+      proposal?.counting_subject_count != null ? String(proposal.counting_subject_count) : "",
+    );
+    const fromAi = bandsFromProposal(doc);
+    setBands(fromAi.length > 0 ? fromAi : [{ min: "", max: "", points: "", label: "" }]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doc.id, doc.extracted_at, doc.aps_rule_id]);
 
   useEffect(() => {
     let active = true;
