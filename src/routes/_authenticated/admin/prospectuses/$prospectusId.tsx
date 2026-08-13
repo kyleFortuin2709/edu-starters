@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import {
   createProspectusFileUrl,
   createStagedCourse,
@@ -47,6 +48,9 @@ function ProspectusDetailPage() {
   const [busy, setBusy] = useState(false);
   const [newName, setNewName] = useState("");
   const [extracting, setExtracting] = useState(false);
+  const [stagedCollapsed, setStagedCollapsed] = useState(false);
+  const [openFaculties, setOpenFaculties] = useState<Record<string, boolean>>({});
+  const unpublishedCount = staged.filter((s) => s.status !== "published").length;
 
   async function runExtraction() {
     if (!doc) return;
