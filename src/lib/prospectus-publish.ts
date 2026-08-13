@@ -21,7 +21,6 @@ export function findMissingInformation(s: StagedCourse): MissingItem[] {
   if (!s.faculty_name) items.push({ label: "Faculty", blocking: false });
   if (s.aps_requirement == null) items.push({ label: "APS requirement", blocking: false });
   if (s.duration_years == null) items.push({ label: "Duration (years)", blocking: false });
-  if (!s.description) items.push({ label: "Description", blocking: false });
   const hasSubjects = (s.extracted_payload?.subject_requirements?.length ?? 0) > 0;
   if (!hasSubjects && !s.requirements_text)
     items.push({ label: "Subject requirements", blocking: false });
