@@ -32,7 +32,7 @@ export function ExtractionProgress({ fileName }: { fileName?: string | null }) {
   let cursor = 0;
   let activeIndex = STAGES.length - 1;
   for (let i = 0; i < STAGES.length; i += 1) {
-    cursor += STAGES[i].seconds;
+    cursor += STAGES[i]!.seconds;
     if (elapsed < cursor) {
       activeIndex = i;
       break;
