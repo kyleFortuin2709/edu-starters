@@ -50,7 +50,7 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -98,7 +98,7 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
       active = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [doc.id, doc.university_id]);
+  }, [doc.id, doc.university_id, doc.extracted_at, detectedName]);
 
   const provinceOptions = useMemo(
     () => provinces.map((p) => ({ value: p.id, label: p.name })),

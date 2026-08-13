@@ -49,7 +49,7 @@ function ProspectusDetailPage() {
   const [busy, setBusy] = useState(false);
   const [newName, setNewName] = useState("");
   const [extracting, setExtracting] = useState(false);
-  const [stagedCollapsed, setStagedCollapsed] = useState(false);
+  const [stagedCollapsed, setStagedCollapsed] = useState(true);
   const [openFaculties, setOpenFaculties] = useState<Record<string, boolean>>({});
   const unpublishedCount = staged.filter((s) => s.status !== "published").length;
 
@@ -440,7 +440,7 @@ function ProspectusDetailPage() {
             {groupStagedByFaculty(staged).map(({ faculty, courses }) => {
               const key = faculty ?? "__none__";
               const pending = courses.filter((c) => c.status !== "published").length;
-              const open = openFaculties[key] ?? pending > 0;
+              const open = openFaculties[key] ?? false;
               return (
               <div
                 key={key}
