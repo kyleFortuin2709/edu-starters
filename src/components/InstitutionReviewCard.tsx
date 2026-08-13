@@ -50,6 +50,7 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     let active = true;
