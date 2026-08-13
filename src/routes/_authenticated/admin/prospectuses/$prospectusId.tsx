@@ -358,9 +358,43 @@ function ProspectusDetailPage() {
         }
       />
 
-      <div className="mt-10 rounded-[2rem] border border-border bg-card p-6 md:p-8">
-        <h2 className="font-display text-2xl font-semibold">Step 3 · Staged courses</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
+      <div
+        className={`mt-10 rounded-[2rem] border bg-card p-6 md:p-8 ${
+          stagedCollapsed && unpublishedCount > 0 ? "border-warning/50 bg-warning/5" : "border-border"
+        }`}
+      >
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="font-display text-2xl font-semibold">Step 3 · Staged courses</h2>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              {unpublishedCount > 0 ? (
+                <span className="rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-xs font-semibold text-warning-foreground">
+                  {unpublishedCount} course{unpublishedCount === 1 ? "" : "s"} not published
+                </span>
+              ) : (
+                staged.length > 0 && (
+                  <span className="rounded-full border border-success/40 bg-success/10 px-3 py-1 text-xs font-semibold text-success">
+                    All courses published
+                  </span>
+                )
+              )}
+              <span className="text-xs text-muted-foreground">{staged.length} staged</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setStagedCollapsed((v) => !v)}
+            aria-expanded={!stagedCollapsed}
+            aria-label={stagedCollapsed ? "Expand staged courses" : "Collapse staged courses"}
+            className="rounded-full border border-border p-2 hover:bg-secondary"
+          >
+            {stagedCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+          </button>
+        </div>
+
+        {!stagedCollapsed && (
+          <>
+        <p className="mt-4 text-sm text-muted-foreground">
           Staged records are a safe scratch space. They are never shown to students and are not part
           of the live course database.
         </p>
@@ -397,12 +431,40 @@ function ProspectusDetailPage() {
           </p>
         ) : (
           <div className="mt-6 space-y-3">
-            {groupStagedByFaculty(staged).map(({ faculty, courses }) => (
-              <div key={faculty ?? "__none__"} className="space-y-3">
-                <h3 className="mt-6 font-mono text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                  {faculty ?? "No faculty captured"} ({courses.length})
-                </h3>
-                {courses.map((s) => (
+            {groupStagedByFaculty(staged).map(({ faculty, courses }) => {
+              const key = faculty ?? "__none__";
+              const pending = courses.filter((c) => c.status !== "published").length;
+              const open = openFaculties[key] ?? pending > 0;
+              return (
+              <div
+                key={key}
+                className={`space-y-3 rounded-2xl border p-4 ${
+                  pending > 0 ? "border-warning/40" : "border-border"
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => setOpenFaculties((prev) => ({ ...prev, [key]: !open }))}
+                  aria-expanded={open}
+                  className="flex w-full flex-wrap items-center justify-between gap-2 text-left"
+                >
+                  <span className="font-mono text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                    {faculty ?? "No faculty captured"} ({courses.length})
+                  </span>
+                  <span className="flex items-center gap-2">
+                    {pending > 0 ? (
+                      <span className="rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-xs font-semibold text-warning-foreground">
+                        {pending} not published
+                      </span>
+                    ) : (
+                      <span className="rounded-full border border-success/40 bg-success/10 px-3 py-1 text-xs font-semibold text-success">
+                        Published
+                      </span>
+                    )}
+                    {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </span>
+                </button>
+                {open && courses.map((s) => (
               <article
                 key={s.id}
                 className="rounded-2xl border border-border bg-background p-5 md:flex md:items-center md:justify-between md:gap-6"
@@ -438,8 +500,11 @@ function ProspectusDetailPage() {
               </article>
                 ))}
               </div>
-            ))}
+              );
+            })}
           </div>
+        )}
+          </>
         )}
       </div>
     </section>
