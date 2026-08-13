@@ -199,6 +199,31 @@ function normaliseProposedAps(raw: unknown): ProposedAps | null {
 }
 
 function normalise(raw: unknown): ExtractionResult {
+  return normaliseResult(raw);
+}
+
+function normaliseProposedInstitution(
+  raw: unknown,
+  fallbackName: string | null,
+): ProposedInstitution | null {
+  const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  const institution: ProposedInstitution = {
+    name: asString(r["name"]) ?? fallbackName,
+    short_name: asString(r["short_name"]),
+    institution_type: asString(r["institution_type"]),
+    city: asString(r["city"]),
+    province: asString(r["province"]),
+    website_url: asString(r["website_url"]),
+    application_url: asString(r["application_url"]),
+    notes: asStringList(r["notes"]),
+  };
+  const hasAnything = Object.entries(institution).some(([key, value]) =>
+    key === "notes" ? (value as string[]).length > 0 : Boolean(value),
+  );
+  return hasAnything ? institution : null;
+}
+
+function normaliseResult(raw: unknown): ExtractionResult {
   const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
   const courses = Array.isArray(r["courses"])
     ? (r["courses"] as unknown[]).map(normaliseCourse).filter((c): c is ExtractedCourse => c !== null)
