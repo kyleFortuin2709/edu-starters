@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import type { ProspectusDocument } from "@/lib/prospectus";
 import {
   bandsFromProposal,
@@ -38,6 +39,8 @@ export function ApsRuleReviewCard({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [collapsed, setCollapsed] = useState(false);
+  const verified = rule?.status === "verified";
 
   useEffect(() => {
     let active = true;
@@ -117,8 +120,36 @@ export function ApsRuleReviewCard({
   }
 
   return (
-    <div className="mt-6 rounded-[2rem] border border-border bg-card p-6 md:p-8">
-      <h2 className="font-display text-2xl font-semibold">APS calculation review</h2>
+    <div
+      className={
+        verified
+          ? "mt-6 rounded-[2rem] border border-border bg-card p-6 md:p-8"
+          : "mt-6 rounded-[2rem] border border-warning/50 bg-warning/5 p-6 md:p-8"
+      }
+    >
+      <div className="flex flex-wrap items-center gap-3">
+        <h2 className="font-display text-2xl font-semibold">APS calculation review</h2>
+        <span
+          className={
+            verified
+              ? "rounded-full border border-success/40 bg-success/10 px-3 py-1 font-mono text-[0.65rem] font-bold uppercase tracking-widest text-success"
+              : "rounded-full border border-warning/50 bg-warning/10 px-3 py-1 font-mono text-[0.65rem] font-bold uppercase tracking-widest text-warning"
+          }
+        >
+          {verified ? "Verified" : rule ? `${rule.status} — needs confirmation` : "Not confirmed"}
+        </span>
+        <button
+          type="button"
+          onClick={() => setCollapsed((c) => !c)}
+          aria-expanded={!collapsed}
+          aria-label={collapsed ? "Expand APS calculation review" : "Collapse APS calculation review"}
+          className="ml-auto rounded-full border border-border p-2 hover:bg-secondary"
+        >
+          {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+        </button>
+      </div>
+      {collapsed ? null : (
+        <>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
         Anything the AI reads about APS is a proposal. It is stored as an unverified rule and is
         never used to score a student until an administrator confirms it.
@@ -285,6 +316,8 @@ export function ApsRuleReviewCard({
             </button>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

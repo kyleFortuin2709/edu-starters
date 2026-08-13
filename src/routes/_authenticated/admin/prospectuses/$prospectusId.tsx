@@ -22,6 +22,7 @@ import { ApsRuleReviewCard } from "@/components/ApsRuleReviewCard";
 import { InstitutionReviewCard } from "@/components/InstitutionReviewCard";
 import { FacultyReviewCard } from "@/components/FacultyReviewCard";
 import { findMissingInformation } from "@/lib/prospectus-publish";
+import { ExtractionProgress } from "@/components/ExtractionProgress";
 
 export const Route = createFileRoute("/_authenticated/admin/prospectuses/$prospectusId")({
   head: () => ({
@@ -274,6 +275,7 @@ function ProspectusDetailPage() {
             Extraction only creates staged records for review. Missing or unclear details are
             flagged instead of guessed, and nothing reaches the live catalogue.
           </p>
+          {extracting && <ExtractionProgress fileName={doc.file_name} />}
           <button
             type="button"
             onClick={openFile}
