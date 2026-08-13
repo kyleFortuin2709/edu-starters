@@ -19,6 +19,7 @@ import { TextField } from "@/components/TextField";
 import { extractProspectus } from "@/lib/prospectus-extract.functions";
 import { ApsRuleReviewCard } from "@/components/ApsRuleReviewCard";
 import { InstitutionReviewCard } from "@/components/InstitutionReviewCard";
+import { FacultyReviewCard } from "@/components/FacultyReviewCard";
 import { findMissingInformation } from "@/lib/prospectus-publish";
 
 export const Route = createFileRoute("/_authenticated/admin/prospectuses/$prospectusId")({
@@ -346,8 +347,19 @@ function ProspectusDetailPage() {
         }}
       />
 
+      <FacultyReviewCard
+        prospectusId={doc.id}
+        universityId={doc.university_id}
+        staged={staged}
+        onStagedUpdated={(ids, facultyName) =>
+          setStaged((prev) =>
+            prev.map((s) => (ids.includes(s.id) ? { ...s, faculty_name: facultyName } : s)),
+          )
+        }
+      />
+
       <div className="mt-10 rounded-[2rem] border border-border bg-card p-6 md:p-8">
-        <h2 className="font-display text-2xl font-semibold">Step 2 · Staged courses</h2>
+        <h2 className="font-display text-2xl font-semibold">Step 3 · Staged courses</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           Staged records are a safe scratch space. They are never shown to students and are not part
           of the live course database.
@@ -385,7 +397,12 @@ function ProspectusDetailPage() {
           </p>
         ) : (
           <div className="mt-6 space-y-3">
-            {staged.map((s) => (
+            {groupStagedByFaculty(staged).map(({ faculty, courses }) => (
+              <div key={faculty ?? "__none__"} className="space-y-3">
+                <h3 className="mt-6 font-mono text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  {faculty ?? "No faculty captured"} ({courses.length})
+                </h3>
+                {courses.map((s) => (
               <article
                 key={s.id}
                 className="rounded-2xl border border-border bg-background p-5 md:flex md:items-center md:justify-between md:gap-6"
@@ -419,10 +436,23 @@ function ProspectusDetailPage() {
                   View & edit
                 </Link>
               </article>
+                ))}
+              </div>
             ))}
           </div>
         )}
       </div>
     </section>
   );
+}
+
+function groupStagedByFaculty(staged: StagedCourse[]) {
+  const groups: { faculty: string | null; courses: StagedCourse[] }[] = [];
+  for (const course of staged) {
+    const faculty = course.faculty_name?.trim() || null;
+    const existing = groups.find((g) => (g.faculty ?? "") === (faculty ?? ""));
+    if (existing) existing.courses.push(course);
+    else groups.push({ faculty, courses: [course] });
+  }
+  return groups.sort((a, b) => (a.faculty ?? "zzz").localeCompare(b.faculty ?? "zzz"));
 }
