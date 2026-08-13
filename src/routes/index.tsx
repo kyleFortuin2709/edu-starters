@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/SiteLayout";
 import { CourseCard, type Course } from "@/components/CourseCard";
-import platformImage from "@/assets/platform-interface.jpg";
+import platformImage from "@/assets/platform-interface.jpg.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
