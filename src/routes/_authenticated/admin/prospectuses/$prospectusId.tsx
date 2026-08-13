@@ -18,6 +18,7 @@ import { SelectField } from "@/components/SelectField";
 import { TextField } from "@/components/TextField";
 import { extractProspectus } from "@/lib/prospectus-extract.functions";
 import { ApsRuleReviewCard } from "@/components/ApsRuleReviewCard";
+import { InstitutionReviewCard } from "@/components/InstitutionReviewCard";
 import { findMissingInformation } from "@/lib/prospectus-publish";
 
 export const Route = createFileRoute("/_authenticated/admin/prospectuses/$prospectusId")({
@@ -325,12 +326,38 @@ function ProspectusDetailPage() {
         onRuleLinked={(ruleId) => setDoc((prev) => (prev ? { ...prev, aps_rule_id: ruleId } : prev))}
       />
 
+      <InstitutionReviewCard
+        doc={doc}
+        onInstitutionLinked={(institution) => {
+          setDoc((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  university_id: institution.id,
+                  universities: { id: institution.id, name: institution.name },
+                }
+              : prev,
+          );
+          setStaged((prev) =>
+            prev.map((s) =>
+              s.status === "published" ? s : { ...s, university_id: institution.id },
+            ),
+          );
+        }}
+      />
+
       <div className="mt-10 rounded-[2rem] border border-border bg-card p-6 md:p-8">
-        <h2 className="font-display text-2xl font-semibold">Staged courses</h2>
+        <h2 className="font-display text-2xl font-semibold">Step 2 · Staged courses</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           Staged records are a safe scratch space. They are never shown to students and are not part
           of the live course database.
         </p>
+        {!doc.university_id && (
+          <p className="mt-4 rounded-2xl border border-border bg-background p-4 text-sm text-muted-foreground">
+            Register or link the institution above first. Course review stays open, but no course
+            can be published until this document belongs to an institution.
+          </p>
+        )}
 
         <form onSubmit={addStaged} className="mt-6 flex flex-wrap items-end gap-3">
           <div className="min-w-[16rem] flex-1">
