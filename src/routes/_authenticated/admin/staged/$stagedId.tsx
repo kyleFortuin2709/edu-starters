@@ -259,6 +259,20 @@ function StagedCoursePage() {
 
       <div className="mt-6 rounded-[2rem] border border-border bg-card p-6 md:p-8">
         <h2 className="font-display text-2xl font-semibold">Completeness check</h2>
+        {!record.university_id && (
+          <p className="mt-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+            This document has no institution yet. Fix it once for every course by registering or
+            linking the institution on the{" "}
+            <Link
+              to="/admin/prospectuses/$prospectusId"
+              params={{ prospectusId: record.prospectus_id }}
+              className="font-semibold underline"
+            >
+              prospectus page
+            </Link>
+            .
+          </p>
+        )}
         {findMissingInformation(record).length === 0 ? (
           <p className="mt-2 text-sm text-muted-foreground">
             Every field we check for is filled in. Confirm the detail against the PDF before
