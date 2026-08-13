@@ -431,9 +431,15 @@ function StagedCoursePage() {
               label="Status"
               value={form.status}
               onChange={(e) => set("status", e.target.value as IngestionStatus)}
-              options={INGESTION_STATUSES.map((s) => ({ value: s.value, label: s.label }))}
+              options={INGESTION_STATUSES.filter(
+                (s) => s.value !== "published" || record.published_course_id,
+              ).map((s) => ({ value: s.value, label: s.label }))}
             />
           </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            A record only becomes "Published" once it has been copied into the live course
+            database with the Publish button below.
+          </p>
           <label htmlFor="staged-notes" className="mt-6 block text-sm font-semibold">
             Reviewer notes
           </label>
@@ -475,7 +481,7 @@ function StagedCoursePage() {
         <div className="mt-5 flex flex-wrap gap-3">
           <button
             type="button"
-            disabled={saving || publishing || hasBlockingGaps(record) || record.status === "published"}
+            disabled={saving || publishing || hasBlockingGaps(record) || !!record.published_course_id}
             onClick={() =>
               setReviewStatus("approved", "Approved. It can now be published to the live database.")
             }
@@ -485,7 +491,7 @@ function StagedCoursePage() {
           </button>
           <button
             type="button"
-            disabled={saving || publishing || record.status === "published"}
+            disabled={saving || publishing || !!record.published_course_id}
             onClick={() =>
               setReviewStatus("review_required", "Rejected. This record needs more work.")
             }
@@ -495,7 +501,12 @@ function StagedCoursePage() {
           </button>
           <button
             type="button"
-            disabled={saving || publishing || record.status !== "approved"}
+            disabled={
+              saving ||
+              publishing ||
+              !!record.published_course_id ||
+              (record.status !== "approved" && record.status !== "published")
+            }
             onClick={publish}
             className="rounded-full border border-success/50 bg-success/10 px-6 py-3 text-sm font-semibold text-foreground hover:bg-success/20 disabled:opacity-60"
           >
@@ -510,6 +521,12 @@ function StagedCoursePage() {
         {record.status !== "approved" && record.status !== "published" && (
           <p className="mt-3 text-xs text-muted-foreground">
             Only approved records can be published.
+          </p>
+        )}
+        {record.status === "published" && !record.published_course_id && (
+          <p className="mt-3 text-xs text-destructive">
+            This record is marked as published but no live course exists for it yet. Use “Publish to
+            live database” to create it.
           </p>
         )}
         {record.published_course_id && (
