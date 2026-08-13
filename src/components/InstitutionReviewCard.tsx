@@ -283,22 +283,22 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
     <div className="mt-10 rounded-[2rem] border border-border bg-card p-6 md:p-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setCollapsed((c) => !c)}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-border hover:bg-secondary"
-            aria-label={collapsed ? "Expand institution section" : "Collapse institution section"}
-          >
-            {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-          </button>
           <h2 className="font-display text-2xl font-semibold">Step 1 · Institution</h2>
+          {linked && (
+            <span className="flex gap-2">
+              <PublicationPill status={linked.publication_status} />
+              <ActivePill active={linked.is_active} />
+            </span>
+          )}
         </div>
-        {linked && (
-          <span className="flex gap-2">
-            <PublicationPill status={linked.publication_status} />
-            <ActivePill active={linked.is_active} />
-          </span>
-        )}
+        <button
+          type="button"
+          onClick={() => setCollapsed((c) => !c)}
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-border hover:bg-secondary"
+          aria-label={collapsed ? "Expand institution section" : "Collapse institution section"}
+        >
+          {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+        </button>
       </div>
       <p className="mt-2 text-sm text-muted-foreground">
         Confirm which institution this prospectus belongs to before reviewing any course. Linking
