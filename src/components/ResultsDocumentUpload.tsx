@@ -372,35 +372,6 @@ export function ResultsDocumentUpload({
               These were read from your document and are <strong>not verified</strong>. Please check
               every subject and mark against your certificate, then capture them below.
             </p>
-            <div className="mt-4 overflow-x-auto rounded-2xl border border-border">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-secondary/60">
-                  <tr>
-                    <th className="px-4 py-2.5 font-semibold">Subject</th>
-                    <th className="px-4 py-2.5 font-semibold">Mark</th>
-                    <th className="px-4 py-2.5 font-semibold">Level</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {subjects.map((row) => (
-                    <tr key={row.id} className="border-t border-border">
-                      <td className="px-4 py-2.5">
-                        {row.subject_name_raw ?? "Unnamed subject"}
-                        {row.is_life_orientation ? (
-                          <span className="ml-2 rounded-full bg-secondary px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">
-                            Life Orientation
-                          </span>
-                        ) : null}
-                      </td>
-                      <td className="px-4 py-2.5">
-                        {row.percentage != null ? `${row.percentage}%` : "—"}
-                      </td>
-                      <td className="px-4 py-2.5">{row.achievement_level ?? "—"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
           </div>
         )
       ) : null}
