@@ -99,7 +99,7 @@ function ExtractionSteps({
   );
 }
 
-export function ResultsDocumentUpload({ userId }: { userId: string }) {
+export function ResultsDocumentUpload({ userId, onExtracted }: { userId: string; onExtracted?: (subjects: ExtractedSubject[]) => void }) {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>("idle");
@@ -111,6 +111,7 @@ export function ResultsDocumentUpload({ userId }: { userId: string }) {
   const fileInput = useRef<HTMLInputElement>(null);
   const cameraInput = useRef<HTMLInputElement>(null);
   const cancelled = useRef(false);
+  const lastNotifiedCount = useRef(0);
 
   useEffect(() => {
     return () => {
@@ -174,6 +175,7 @@ export function ResultsDocumentUpload({ userId }: { userId: string }) {
       setPhase("starting");
       const documentId = await startExtraction(userId, path);
       setPhase("processing");
+      lastNotifiedCount.current = 0;
 
       const startedAt = Date.now();
       let lastCount = 0;
@@ -193,8 +195,14 @@ export function ResultsDocumentUpload({ userId }: { userId: string }) {
         setChecks((n) => n + 1);
         setFound(count);
         // Render rows the moment the job writes them — don't wait for the
-        // document status to flip.
-        if (count > 0) setSubjects(rows);
+        // document status to flip, and prepopulate the form below.
+        if (count > 0) {
+          setSubjects(rows);
+          if (count !== lastNotifiedCount.current) {
+            onExtracted?.(rows);
+            lastNotifiedCount.current = count;
+          }
+        }
 
         if (state.status === "failed") {
           throw new Error(
@@ -215,6 +223,9 @@ export function ResultsDocumentUpload({ userId }: { userId: string }) {
 
       const final = await fetchExtractedSubjects(documentId);
       if (cancelled.current) return;
+      if (final.length !== lastNotifiedCount.current) {
+        onExtracted?.(final);
+      }
       setSubjects(final);
       setPhase("done");
     } catch (caught) {
