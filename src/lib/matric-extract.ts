@@ -46,7 +46,7 @@ function safeName(name: string): string {
 export async function uploadResultsDocument(userId: string, file: File): Promise<string> {
   const path = `${userId}/${safeName(file.name)}`;
   const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
-    contentType: file.type || undefined,
+    ...(file.type ? { contentType: file.type } : {}),
     upsert: false,
   });
   if (error) {
