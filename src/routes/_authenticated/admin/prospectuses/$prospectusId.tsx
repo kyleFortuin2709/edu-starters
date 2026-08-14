@@ -587,6 +587,19 @@ function ProspectusDetailPage() {
                     {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </span>
                 </button>
+                {pending > 0 && (
+                  <button
+                    type="button"
+                    disabled={bulkBusy}
+                    onClick={() =>
+                      publishBatch(courses.filter((c) => c.status !== "published" && !hasBlockingGaps(c)))
+                    }
+                    className="rounded-full border border-border px-4 py-2 text-xs font-semibold hover:bg-secondary disabled:opacity-60"
+                  >
+                    Publish this faculty's ready courses (
+                    {courses.filter((c) => c.status !== "published" && !hasBlockingGaps(c)).length})
+                  </button>
+                )}
                 {open && courses.map((s) => (
               <article
                 key={s.id}
