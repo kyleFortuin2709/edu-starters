@@ -116,17 +116,3 @@ export async function countExtractedSubjects(documentId: string): Promise<number
   if (error) return 0;
   return count ?? 0;
 }
-
-async function unusedFetchExtractedSubjects(documentId: string): Promise<ExtractedSubject[]> {
-  const { data, error } = await db
-    .from("staged_matric_subjects")
-    .select(
-      "id, subject_name_raw, percentage, achievement_level, is_life_orientation, confidence, subject_id, confirmed",
-    )
-    .eq("document_id", documentId);
-  if (error) {
-    console.error("staged subjects fetch failed", error);
-    throw new Error("We read your document but couldn't load the subjects. Please try again.");
-  }
-  return (data ?? []) as ExtractedSubject[];
-}
