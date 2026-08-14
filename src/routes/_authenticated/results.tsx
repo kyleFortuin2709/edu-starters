@@ -8,6 +8,7 @@ import { ActionButton } from "@/components/ActionButton";
 import { FormMessage } from "@/components/FormMessage";
 import { ResultsDocumentUpload } from "@/components/ResultsDocumentUpload";
 import { useAuth } from "@/lib/auth";
+import { type ExtractedSubject } from "@/lib/matric-extract";
 import {
   achievementLevelForMark,
   fetchMyResults,
@@ -20,9 +21,16 @@ export const Route = createFileRoute("/_authenticated/results")({
   head: () => ({
     meta: [
       { title: "Your NSC results — EduStarter" },
-      { name: "description", content: "Add and edit your NSC subjects and marks so EduStarter can work with your results." },
+      {
+        name: "description",
+        content:
+          "Add and edit your NSC subjects and marks so EduStarter can work with your results.",
+      },
       { property: "og:title", content: "Your NSC results — EduStarter" },
-      { property: "og:description", content: "Add and edit your NSC subjects and marks in EduStarter." },
+      {
+        property: "og:description",
+        content: "Add and edit your NSC subjects and marks in EduStarter.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -43,13 +51,17 @@ function ResultsPage() {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [extractionNotice, setExtractionNotice] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
     let active = true;
     (async () => {
       try {
-        const [subjectList, results] = await Promise.all([fetchSubjects(), fetchMyResults(user.id)]);
+        const [subjectList, results] = await Promise.all([
+          fetchSubjects(),
+          fetchMyResults(user.id),
+        ]);
         if (!active) return;
         setSubjects(subjectList);
         setRows(
@@ -58,7 +70,8 @@ function ResultsPage() {
             : [newRow(), newRow(), newRow()],
         );
       } catch {
-        if (active) setFormError("We couldn't load your results right now. Please refresh the page.");
+        if (active)
+          setFormError("We couldn't load your results right now. Please refresh the page.");
       } finally {
         if (active) setLoading(false);
       }
@@ -76,6 +89,14 @@ function ResultsPage() {
       map.set(s.category, list);
     }
     return [...map.entries()];
+  }, [subjects]);
+
+  const subjectNameToId = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const s of subjects) {
+      map.set(s.name.toLowerCase().trim(), s.id);
+    }
+    return map;
   }, [subjects]);
 
   function update(key: string, patch: Partial<Row>) {
@@ -141,21 +162,48 @@ function ResultsPage() {
 
   const completed = rows.filter((r) => r.subjectId && r.mark.trim() !== "").length;
 
+  function handleExtracted(extracted: ExtractedSubject[]) {
+    if (extracted.length === 0) return;
+    const seen = new Set<string>();
+    const nextRows = extracted
+      .map((s) => {
+        let subjectId = s.subject_id ?? "";
+        if (!subjectId && s.subject_name_raw) {
+          subjectId = subjectNameToId.get(s.subject_name_raw.toLowerCase().trim()) ?? "";
+        }
+        return newRow(subjectId, s.percentage != null ? String(s.percentage) : "");
+      })
+      .filter((r) => {
+        if (!r.subjectId) return true;
+        if (seen.has(r.subjectId)) return false;
+        seen.add(r.subjectId);
+        return true;
+      });
+    setRows(nextRows);
+    setExtractionNotice(
+      `We found ${extracted.length} subject${extracted.length === 1 ? "" : "s"} in your document and added them below for you to review.`,
+    );
+    setSaved(false);
+    setFormError("");
+  }
+
   return (
     <SiteLayout>
       <section className="mx-auto w-full max-w-3xl px-6 py-14 md:py-20">
-        <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Your results</p>
+        <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+          Your results
+        </p>
         <h1 className="mt-4 font-display text-4xl font-semibold leading-tight tracking-tight">
           Add your <span className="italic text-primary">NSC subjects</span> and marks.
         </h1>
         <p className="mt-4 text-muted-foreground">
-          Add as many subjects as you took — there's no fixed number. You can come back and edit these at any
-          time.
+          Add as many subjects as you took — there's no fixed number. You can come back and edit
+          these at any time.
         </p>
 
         {user ? (
           <div className="mt-8">
-            <ResultsDocumentUpload userId={user.id} />
+            <ResultsDocumentUpload userId={user.id} onExtracted={handleExtracted} />
           </div>
         ) : null}
 
@@ -165,6 +213,9 @@ function ResultsPage() {
           ) : (
             <div className="space-y-5">
               <FormMessage>{formError}</FormMessage>
+              {extractionNotice ? (
+                <FormMessage tone="success">{extractionNotice}</FormMessage>
+              ) : null}
               {saved ? (
                 <FormMessage tone="success">
                   Your results are saved. {completed} subject{completed === 1 ? "" : "s"} recorded.
@@ -255,8 +306,8 @@ function ResultsPage() {
               ) : null}
 
               <p className="text-center text-xs text-muted-foreground">
-                Marks must be between 0 and 100, and each subject can only be added once. Only you can see
-                your results.
+                Marks must be between 0 and 100, and each subject can only be added once. Only you
+                can see your results.
               </p>
             </div>
           )}

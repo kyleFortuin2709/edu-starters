@@ -32,7 +32,8 @@ export function validateFile(file: File): string | null {
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
   const typeOk = ACCEPTED_MIME.includes(file.type.toLowerCase()) || ACCEPTED_EXT.includes(ext);
   if (!typeOk) return "That file type isn't supported. Please upload a JPG, PNG or PDF.";
-  if (file.size > MAX_FILE_BYTES) return "That file is larger than 20 MB. Please upload a smaller file.";
+  if (file.size > MAX_FILE_BYTES)
+    return "That file is larger than 20 MB. Please upload a smaller file.";
   if (file.size === 0) return "That file appears to be empty. Please choose another one.";
   return null;
 }
@@ -51,7 +52,9 @@ export async function uploadResultsDocument(userId: string, file: File): Promise
   });
   if (error) {
     console.error("matric upload failed", error);
-    throw new Error("We couldn't upload your document. Please check your connection and try again.");
+    throw new Error(
+      "We couldn't upload your document. Please check your connection and try again.",
+    );
   }
   return path;
 }
