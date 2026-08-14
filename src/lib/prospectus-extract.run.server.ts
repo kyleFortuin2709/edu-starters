@@ -32,7 +32,8 @@ export async function runExtractionForProspectus(input: {
   if (docError) throw new Error("We couldn't load that prospectus.");
   if (!doc) throw new Error("That prospectus no longer exists.");
 
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { getSupabaseAdmin } = await import("./supabase-admin.server");
+  const supabaseAdmin = getSupabaseAdmin();
 
   await supabase
     .from("prospectus_documents")
