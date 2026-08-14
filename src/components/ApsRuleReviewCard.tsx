@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import type { ProspectusDocument } from "@/lib/prospectus";
+import { apsMethodologyText, proposedAps, type ProspectusDocument } from "@/lib/prospectus";
 import {
   bandsFromProposal,
   confirmApsRule,
@@ -24,7 +24,8 @@ export function ApsRuleReviewCard({
   doc: ProspectusDocument;
   onRuleLinked: (ruleId: string | null) => void;
 }) {
-  const proposal = doc.extraction_payload?.proposed_aps ?? null;
+  const proposal = proposedAps(doc);
+  const methodology = apsMethodologyText(doc);
   const [rule, setRule] = useState<ApsRuleSummary | null>(null);
   const [name, setName] = useState(proposal?.name ?? `${doc.title} APS calculation`);
   const [version, setVersion] = useState(doc.academic_year ?? "v1");
@@ -85,7 +86,7 @@ export function ApsRuleReviewCard({
         prospectusId: doc.id,
         name: name.trim() || `${doc.title} APS calculation`,
         version,
-        description: doc.aps_methodology_text,
+        description: methodology,
         countingSubjectCount: counting.trim() ? Number(counting) : null,
         bands: bands.filter((b) => b.min || b.max || b.points),
       });
@@ -172,7 +173,7 @@ export function ApsRuleReviewCard({
       <div className="mt-5">
         <h3 className="text-sm font-semibold">Methodology found in the document</h3>
         <p className="mt-2 whitespace-pre-wrap rounded-2xl border border-border bg-background p-4 text-sm text-muted-foreground">
-          {doc.aps_methodology_text ?? "No APS methodology was found in this document."}
+          {methodology ?? "No APS methodology was found in this document."}
         </p>
       </div>
 

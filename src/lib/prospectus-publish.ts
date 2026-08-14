@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { ProspectusDocument, StagedCourse } from "./prospectus";
+import { proposedAps, type ProspectusDocument, type StagedCourse } from "./prospectus";
 
 /**
  * Staging -> live promotion.
@@ -264,7 +264,7 @@ export type ApsRuleSummary = {
 export type RuleBandInput = { min: string; max: string; points: string; label: string };
 
 export function bandsFromProposal(doc: ProspectusDocument): RuleBandInput[] {
-  const bands = doc.extraction_payload?.proposed_aps?.bands ?? [];
+  const bands = proposedAps(doc)?.bands ?? [];
   return bands.map((b) => ({
     min: String(b.min_percentage),
     max: String(b.max_percentage),

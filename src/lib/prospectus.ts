@@ -75,6 +75,101 @@ export type ProposedInstitutionPayload = {
   notes?: string[];
 };
 
+/**
+ * The extractor is external, so its JSON shape varies. These normalisers read
+ * whichever key names it used (and fall back to document-level fields) so the
+ * review cards always pre-populate with whatever was found.
+ */
+type AnyRecord = Record<string, unknown>;
+
+function asRecord(value: unknown): AnyRecord | null {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as AnyRecord) : null;
+}
+
+function str(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function num(value: unknown): number | null {
+  const n = typeof value === "string" ? Number(value.replace(/[^\d.]/g, "")) : value;
+  return typeof n === "number" && Number.isFinite(n) ? n : null;
+}
+
+function pick(source: AnyRecord | null, keys: string[]): unknown {
+  if (!source) return undefined;
+  for (const key of keys) if (source[key] != null) return source[key];
+  return undefined;
+}
+
+export function proposedInstitution(doc: ProspectusDocument): ProposedInstitutionPayload | null {
+  const payload = asRecord(doc.extraction_payload) ?? {};
+  const raw =
+    asRecord(pick(payload, ["proposed_institution", "institution", "university", "provider"])) ?? {};
+  const name =
+    str(pick(raw, ["name", "institution_name", "university_name", "full_name"])) ??
+    str(pick(payload, ["university_name", "institution_name"]));
+  const result: ProposedInstitutionPayload = {
+    name,
+    short_name: str(pick(raw, ["short_name", "abbreviation", "acronym"])),
+    institution_type: str(pick(raw, ["institution_type", "type"])),
+    city: str(pick(raw, ["city", "town", "campus_city"])),
+    province: str(pick(raw, ["province", "region"])),
+    website_url: str(pick(raw, ["website_url", "website", "url"])),
+    application_url: str(pick(raw, ["application_url", "apply_url", "applications_url"])),
+    notes: Array.isArray(raw['notes']) ? (raw['notes'] as string[]) : [],
+  };
+  return result.name || result.city || result.province || result.short_name ? result : null;
+}
+
+export function proposedAps(doc: ProspectusDocument): ProposedApsPayload | null {
+  const payload = asRecord(doc.extraction_payload) ?? {};
+  const raw =
+    asRecord(
+      pick(payload, ["proposed_aps", "aps", "aps_rule", "aps_calculation", "aps_methodology"]),
+    ) ?? {};
+  const bandsRaw = pick(raw, ["bands", "point_bands", "points_table", "table"]) ??
+    pick(payload, ["aps_bands", "aps_point_bands", "points_table"]);
+  const bands = Array.isArray(bandsRaw)
+    ? bandsRaw
+        .map((entry) => {
+          const b = asRecord(entry);
+          if (!b) return null;
+          const min = num(pick(b, ["min_percentage", "min", "from", "percentage_from", "lower"]));
+          const max = num(pick(b, ["max_percentage", "max", "to", "percentage_to", "upper"]));
+          const points = num(pick(b, ["points", "aps_points", "value", "score"]));
+          if (min == null && max == null && points == null) return null;
+          return {
+            min_percentage: min ?? 0,
+            max_percentage: max ?? 100,
+            points: points ?? 0,
+            label: str(pick(b, ["label", "name", "level", "description"])),
+          };
+        })
+        .filter((b): b is NonNullable<typeof b> => b != null)
+    : [];
+  const notes = pick(raw, ["notes", "ambiguities", "flags"]);
+  const result: ProposedApsPayload = {
+    name: str(pick(raw, ["name", "rule_name", "title"])),
+    counting_subject_count: num(
+      pick(raw, ["counting_subject_count", "subjects_counted", "subject_count"]),
+    ),
+    bands,
+    notes: Array.isArray(notes) ? (notes as string[]) : [],
+  };
+  return result.name || result.counting_subject_count != null || bands.length > 0 || result.notes?.length
+    ? result
+    : null;
+}
+
+/** APS methodology text, whether the extractor stored it in a column or the payload. */
+export function apsMethodologyText(doc: ProspectusDocument): string | null {
+  const payload = asRecord(doc.extraction_payload) ?? {};
+  return (
+    doc.aps_methodology_text ??
+    str(pick(payload, ["aps_methodology_text", "aps_methodology", "methodology"]))
+  );
+}
+
 const PROSPECTUS_SELECT = `
   id, university_id, aps_rule_id, title, file_name, storage_path, file_size, academic_year,
   status, page_count, notes, error_message, created_at, updated_at,
