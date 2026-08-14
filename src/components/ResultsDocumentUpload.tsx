@@ -120,6 +120,10 @@ export function ResultsDocumentUpload({
   const lastNotifiedCount = useRef(0);
 
   useEffect(() => {
+    // React Strict Mode runs effect setup → cleanup → setup in development.
+    // Reset the guard on setup so that simulated cleanup does not permanently
+    // cancel every polling loop started afterwards.
+    cancelled.current = false;
     return () => {
       cancelled.current = true;
     };
@@ -170,6 +174,7 @@ export function ResultsDocumentUpload({
 
   async function handleSubmit() {
     if (!file || busy) return;
+    cancelled.current = false;
     setError("");
     setSubjects(null);
     setElapsed(0);
