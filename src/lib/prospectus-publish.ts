@@ -78,6 +78,59 @@ export function matchSubject(name: string, subjects: SubjectRow[]): SubjectRow |
 
 export type PublishResult = { courseId: string; warnings: string[] };
 
+export type BatchPublishOutcome = {
+  published: number;
+  skipped: { name: string; reason: string }[];
+  failed: { name: string; reason: string }[];
+  warnings: string[];
+};
+
+/**
+ * Publish many approved staged courses in one pass. Records with blocking gaps
+ * are skipped (never guessed at) and failures never stop the rest of the batch.
+ */
+export async function publishStagedCourses(
+  rows: StagedCourse[],
+  onProgress?: (done: number, total: number, name: string) => void,
+): Promise<BatchPublishOutcome> {
+  const outcome: BatchPublishOutcome = { published: 0, skipped: [], failed: [], warnings: [] };
+  const total = rows.length;
+  let done = 0;
+  for (const row of rows) {
+    onProgress?.(done, total, row.name);
+    if (row.status === "published") {
+      done += 1;
+      continue;
+    }
+    if (hasBlockingGaps(row)) {
+      outcome.skipped.push({
+        name: row.name,
+        reason: findMissingInformation(row)
+          .filter((m) => m.blocking)
+          .map((m) => m.label)
+          .join(", "),
+      });
+      done += 1;
+      continue;
+    }
+    try {
+      const result = await publishStagedCourse(row);
+      outcome.published += 1;
+      for (const warning of result.warnings) {
+        if (!outcome.warnings.includes(warning)) outcome.warnings.push(warning);
+      }
+    } catch (err) {
+      outcome.failed.push({
+        name: row.name,
+        reason: err instanceof Error ? err.message : "Unknown error",
+      });
+    }
+    done += 1;
+    onProgress?.(done, total, row.name);
+  }
+  return outcome;
+}
+
 async function resolveFaculty(universityId: string, name: string | null): Promise<string | null> {
   if (!name?.trim()) return null;
   const { data: existing } = await supabase

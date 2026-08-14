@@ -21,7 +21,12 @@ import { extractProspectus } from "@/lib/prospectus-extract.functions";
 import { ApsRuleReviewCard } from "@/components/ApsRuleReviewCard";
 import { InstitutionReviewCard } from "@/components/InstitutionReviewCard";
 import { FacultyReviewCard } from "@/components/FacultyReviewCard";
-import { findMissingInformation } from "@/lib/prospectus-publish";
+import {
+  findMissingInformation,
+  hasBlockingGaps,
+  publishStagedCourses,
+  type BatchPublishOutcome,
+} from "@/lib/prospectus-publish";
 import { ExtractionProgress } from "@/components/ExtractionProgress";
 
 export const Route = createFileRoute("/_authenticated/admin/prospectuses/$prospectusId")({
@@ -52,6 +57,38 @@ function ProspectusDetailPage() {
   const [stagedCollapsed, setStagedCollapsed] = useState(true);
   const [openFaculties, setOpenFaculties] = useState<Record<string, boolean>>({});
   const unpublishedCount = staged.filter((s) => s.status !== "published").length;
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number; name: string } | null>(
+    null,
+  );
+  const [bulkReport, setBulkReport] = useState<BatchPublishOutcome | null>(null);
+
+  const readyCourses = staged.filter((s) => s.status !== "published" && !hasBlockingGaps(s));
+
+  async function publishBatch(rows: StagedCourse[]) {
+    if (rows.length === 0) return;
+    setBulkBusy(true);
+    setBulkReport(null);
+    setError("");
+    setMessage("");
+    setBulkProgress({ done: 0, total: rows.length, name: rows[0]?.name ?? "" });
+    try {
+      const outcome = await publishStagedCourses(rows, (done, total, name) =>
+        setBulkProgress({ done, total, name }),
+      );
+      const refreshed = await fetchStagedCourses(prospectusId);
+      setStaged(refreshed);
+      setBulkReport(outcome);
+      setMessage(
+        `${outcome.published} course${outcome.published === 1 ? "" : "s"} published to the live catalogue.`,
+      );
+    } catch {
+      setError("That bulk publish couldn't be completed. Please try again.");
+    } finally {
+      setBulkBusy(false);
+      setBulkProgress(null);
+    }
+  }
 
   async function runExtraction() {
     if (!doc) return;
@@ -404,6 +441,86 @@ function ProspectusDetailPage() {
           Staged records are a safe scratch space. They are never shown to students and are not part
           of the live course database.
         </p>
+
+        <div className="mt-5 rounded-2xl border border-border bg-background p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              disabled={bulkBusy || readyCourses.length === 0}
+              onClick={() => publishBatch(readyCourses)}
+              className="rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background hover:bg-primary disabled:opacity-60"
+            >
+              {bulkBusy
+                ? "Publishing…"
+                : `Publish all ready courses (${readyCourses.length})`}
+            </button>
+            <span className="text-xs text-muted-foreground">
+              {unpublishedCount - readyCourses.length} course
+              {unpublishedCount - readyCourses.length === 1 ? "" : "s"} still need a fix before they
+              can go live.
+            </span>
+          </div>
+          {bulkProgress && (
+            <div className="mt-3">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+                <div
+                  className="h-full rounded-full bg-primary transition-all"
+                  style={{
+                    width: `${Math.round((bulkProgress.done / Math.max(bulkProgress.total, 1)) * 100)}%`,
+                  }}
+                />
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {bulkProgress.done} of {bulkProgress.total} · {bulkProgress.name}
+              </p>
+            </div>
+          )}
+          {bulkReport && (
+            <div className="mt-3 space-y-2 text-xs">
+              {bulkReport.skipped.length > 0 && (
+                <details className="rounded-xl border border-warning/40 bg-warning/5 p-3">
+                  <summary className="cursor-pointer font-semibold text-warning-foreground">
+                    {bulkReport.skipped.length} skipped — missing required details
+                  </summary>
+                  <ul className="mt-2 space-y-1 text-muted-foreground">
+                    {bulkReport.skipped.map((s) => (
+                      <li key={s.name}>
+                        {s.name} — {s.reason}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+              {bulkReport.failed.length > 0 && (
+                <details className="rounded-xl border border-destructive/30 bg-destructive/5 p-3">
+                  <summary className="cursor-pointer font-semibold text-destructive">
+                    {bulkReport.failed.length} failed
+                  </summary>
+                  <ul className="mt-2 space-y-1 text-muted-foreground">
+                    {bulkReport.failed.map((f) => (
+                      <li key={f.name}>
+                        {f.name} — {f.reason}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+              {bulkReport.warnings.length > 0 && (
+                <details className="rounded-xl border border-border p-3">
+                  <summary className="cursor-pointer font-semibold">
+                    {bulkReport.warnings.length} warning
+                    {bulkReport.warnings.length === 1 ? "" : "s"}
+                  </summary>
+                  <ul className="mt-2 space-y-1 text-muted-foreground">
+                    {bulkReport.warnings.map((w) => (
+                      <li key={w}>{w}</li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </div>
+          )}
+        </div>
         {!doc.university_id && (
           <p className="mt-4 rounded-2xl border border-border bg-background p-4 text-sm text-muted-foreground">
             Register or link the institution above first. Course review stays open, but no course
@@ -470,6 +587,19 @@ function ProspectusDetailPage() {
                     {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </span>
                 </button>
+                {pending > 0 && (
+                  <button
+                    type="button"
+                    disabled={bulkBusy}
+                    onClick={() =>
+                      publishBatch(courses.filter((c) => c.status !== "published" && !hasBlockingGaps(c)))
+                    }
+                    className="rounded-full border border-border px-4 py-2 text-xs font-semibold hover:bg-secondary disabled:opacity-60"
+                  >
+                    Publish this faculty's ready courses (
+                    {courses.filter((c) => c.status !== "published" && !hasBlockingGaps(c)).length})
+                  </button>
+                )}
                 {open && courses.map((s) => (
               <article
                 key={s.id}
