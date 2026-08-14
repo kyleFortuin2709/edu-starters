@@ -70,13 +70,13 @@ function parseBlocks(markdown: string): Block[] {
     const numbered = line.match(/^\d+[.)]\s+(.*)$/);
     const previous = blocks[blocks.length - 1];
     if (heading) {
-      blocks.push({ type: "h", text: heading[1] });
+      blocks.push({ type: "h", text: heading[1] ?? "" });
     } else if (bullet) {
-      if (previous?.type === "ul") previous.items.push(bullet[1]);
-      else blocks.push({ type: "ul", items: [bullet[1]] });
+      if (previous?.type === "ul") previous.items.push(bullet[1] ?? "");
+      else blocks.push({ type: "ul", items: [bullet[1] ?? ""] });
     } else if (numbered) {
-      if (previous?.type === "ol") previous.items.push(numbered[1]);
-      else blocks.push({ type: "ol", items: [numbered[1]] });
+      if (previous?.type === "ol") previous.items.push(numbered[1] ?? "");
+      else blocks.push({ type: "ol", items: [numbered[1] ?? ""] });
     } else if (previous?.type === "p" && previous.lines.length) {
       previous.lines.push(line);
     } else {
