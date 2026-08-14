@@ -220,11 +220,13 @@ export function ResultsDocumentUpload({
             "We couldn't read your results from that document. Please try a clearer photo or PDF.",
           );
         }
-        // Anything other than "processing" means the reader is finished with it.
-        if (state.status !== "processing") {
-          setSubjects(rows);
-          break;
+        // Keep polling while the worker is still getting started or reading pages.
+        if (state.status === "pending" || state.status === "processing") {
+          continue;
         }
+        // Anything else means the reader is finished with this document.
+        setSubjects(rows);
+        break;
       }
 
       const final = await fetchExtractedSubjects(documentId);
