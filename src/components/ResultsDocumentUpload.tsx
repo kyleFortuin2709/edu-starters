@@ -8,11 +8,10 @@ import {
   startExtraction,
   uploadResultsDocument,
   validateFile,
-  countExtractedSubjects,
   type ExtractedSubject,
 } from "@/lib/matric-extract";
 
-const POLL_MS = 2500;
+const POLL_MS = 1500;
 const POLL_TIMEOUT_MS = 300_000;
 
 type Phase = "idle" | "uploading" | "starting" | "processing" | "done" | "error";
@@ -188,10 +187,14 @@ export function ResultsDocumentUpload({ userId }: { userId: string }) {
         }
         const state = await fetchDocumentState(documentId);
         if (cancelled.current) return;
-        const count = await countExtractedSubjects(documentId);
+        const rows = await fetchExtractedSubjects(documentId);
         if (cancelled.current) return;
+        const count = rows.length;
         setChecks((n) => n + 1);
         setFound(count);
+        // Render rows the moment the job writes them — don't wait for the
+        // document status to flip.
+        if (count > 0) setSubjects(rows);
 
         if (state.status === "failed") {
           throw new Error(
@@ -199,7 +202,10 @@ export function ResultsDocumentUpload({ userId }: { userId: string }) {
           );
         }
         // Anything other than "processing" means the reader is finished with it.
-        if (state.status !== "processing") break;
+        if (state.status !== "processing") {
+          setSubjects(rows);
+          break;
+        }
         // Fallback: rows are already written and have stopped growing, so the
         // reader is done even if the document status hasn't been flipped yet.
         stableTicks = count > 0 && count === lastCount ? stableTicks + 1 : 0;
@@ -207,9 +213,9 @@ export function ResultsDocumentUpload({ userId }: { userId: string }) {
         if (stableTicks >= 2) break;
       }
 
-      const rows = await fetchExtractedSubjects(documentId);
+      const final = await fetchExtractedSubjects(documentId);
       if (cancelled.current) return;
-      setSubjects(rows);
+      setSubjects(final);
       setPhase("done");
     } catch (caught) {
       if (cancelled.current) return;
