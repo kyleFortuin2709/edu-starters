@@ -615,6 +615,12 @@ function ProspectusDetailPage() {
                       s.faculty_name,
                       s.qualification_name,
                       s.aps_requirement != null ? `APS ${s.aps_requirement}` : null,
+                      (() => {
+                        const d = resolveDuration(s);
+                        return d
+                          ? `${d.years} ${d.years === 1 ? "year" : "years"}${d.source === "stated" ? "" : " (est.)"}`
+                          : null;
+                      })(),
                       s.source_page != null ? `Page ${s.source_page}` : null,
                     ]
                       .filter(Boolean)
