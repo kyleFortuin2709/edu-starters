@@ -249,6 +249,12 @@ export async function publishStagedCourse(s: StagedCourse): Promise<PublishResul
   const facultyId = await resolveFaculty(s.university_id, s.faculty_name);
   const qualificationTypeId = await resolveQualificationType(s.qualification_name);
 
+  const duration = resolveDuration(s);
+  if (duration && duration.source !== "stated")
+    warnings.push(
+      `${s.name}: no duration was stated, so a typical ${duration.years}-year duration was used for this qualification type.`,
+    );
+
   const { data: course, error: courseError } = await supabase
     .from("courses")
     .insert({
@@ -258,7 +264,7 @@ export async function publishStagedCourse(s: StagedCourse): Promise<PublishResul
       name: s.name,
       code: s.code,
       description: s.description,
-      duration_years: s.duration_years,
+      duration_years: duration?.years ?? null,
       aps_requirement: s.aps_requirement,
       application_url: s.application_url,
       is_active: true,
@@ -270,6 +276,7 @@ export async function publishStagedCourse(s: StagedCourse): Promise<PublishResul
         staged_course_id: s.id,
         source_page: s.source_page,
         requirements_text: s.requirements_text,
+        duration_source: duration?.source ?? null,
       },
     })
     .select("id")
