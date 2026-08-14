@@ -64,11 +64,12 @@ function ResultsPage() {
         ]);
         if (!active) return;
         setSubjects(subjectList);
-        setRows(
+        const initialRows =
           results.length
             ? results.map((r) => newRow(r.subject_id ?? "", r.mark != null ? String(r.mark) : ""))
-            : [newRow(), newRow(), newRow()],
-        );
+            : [newRow(), newRow(), newRow()];
+        setRows(initialRows);
+        setSaved(results.length > 0);
       } catch {
         if (active)
           setFormError("We couldn't load your results right now. Please refresh the page.");
@@ -292,9 +293,11 @@ function ResultsPage() {
                 Add another subject
               </button>
 
-              <ActionButton size="block" onClick={handleSave} disabled={saving}>
-                {saving ? "Saving…" : "Save my results"}
-              </ActionButton>
+              {!saved ? (
+                <ActionButton size="block" onClick={handleSave} disabled={saving}>
+                  {saving ? "Saving…" : "Save my results"}
+                </ActionButton>
+              ) : null}
 
               {saved ? (
                 <Link
