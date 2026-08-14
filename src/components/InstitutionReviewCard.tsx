@@ -265,15 +265,20 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
         placeholder="https://"
       />
       <div className="md:col-span-2">
-        <label htmlFor="inst-desc" className="text-sm font-semibold text-foreground">
-          Description / institution type
-        </label>
-        <textarea
+        <SelectField
           id="inst-desc"
-          rows={3}
+          label="Institution type"
+          placeholder="Choose an institution type"
+          options={[
+            { value: "Public University", label: "Public University" },
+            { value: "University of Technology", label: "University of Technology" },
+            { value: "TVET College", label: "TVET College" },
+            { value: "Private College", label: "Private College" },
+            { value: "Distance Learning Institution", label: "Distance Learning Institution" },
+            { value: "Other", label: "Other" },
+          ]}
           value={form.description}
           onChange={(e) => set("description", e.target.value)}
-          className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10"
         />
       </div>
     </div>
