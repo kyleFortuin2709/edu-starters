@@ -86,7 +86,7 @@ export function ApsRuleReviewCard({
         prospectusId: doc.id,
         name: name.trim() || `${doc.title} APS calculation`,
         version,
-        description: doc.aps_methodology_text,
+        description: methodology,
         countingSubjectCount: counting.trim() ? Number(counting) : null,
         bands: bands.filter((b) => b.min || b.max || b.points),
       });
