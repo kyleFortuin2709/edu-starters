@@ -15,6 +15,7 @@ import {
   findMissingInformation,
   hasBlockingGaps,
   publishStagedCourse,
+  resolveDuration,
 } from "@/lib/prospectus-publish";
 
 export const Route = createFileRoute("/_authenticated/admin/staged/$stagedId")({
@@ -46,13 +47,14 @@ type FormState = {
 };
 
 function toForm(s: StagedCourse): FormState {
+  const duration = resolveDuration(s);
   return {
     name: s.name,
     code: s.code ?? "",
     faculty_name: s.faculty_name ?? "",
     qualification_name: s.qualification_name ?? "",
     description: s.description ?? "",
-    duration_years: s.duration_years != null ? String(s.duration_years) : "",
+    duration_years: duration != null ? String(duration.years) : "",
     aps_requirement: s.aps_requirement != null ? String(s.aps_requirement) : "",
     application_url: s.application_url ?? "",
     requirements_text: s.requirements_text ?? "",
