@@ -68,6 +68,8 @@ export function friendlyAuthError(message?: string | null): string {
     return "You already have an account with this email. Try logging in instead.";
   if (raw.includes("password should be at least"))
     return "Your password is too short — please use at least 6 characters.";
+  if (raw.includes("weak and easy to guess") || raw.includes("pwned") || raw.includes("known to be weak"))
+    return "That password has appeared in known data breaches. Please choose a stronger, more unique password.";
   if (raw.includes("rate limit") || raw.includes("too many"))
     return "Too many attempts. Please wait a minute and try again.";
   if (raw.includes("unable to validate email") || raw.includes("invalid email"))
