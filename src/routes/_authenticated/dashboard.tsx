@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { fetchMyProfile, isProfileComplete, type StudentProfile } from "@/lib/profile";
 import { countMyResults } from "@/lib/results";
 import { ToleranceSettingsCard } from "@/components/ToleranceSettingsCard";
+import { ApsScoresCard } from "@/components/ApsScoresCard";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -137,6 +138,7 @@ function DashboardPage() {
 
         {user && (
           <div className="mt-6 grid gap-6 md:grid-cols-2">
+            <ApsScoresCard userId={user.id} />
             <ToleranceSettingsCard userId={user.id} profile={profile} />
             <div className="rounded-[2rem] border border-border bg-card p-8">
               <span className="font-mono text-xs font-bold uppercase text-muted-foreground">
