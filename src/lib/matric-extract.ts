@@ -106,3 +106,13 @@ export async function fetchExtractedSubjects(documentId: string): Promise<Extrac
   }
   return (data ?? []) as ExtractedSubject[];
 }
+
+/** Live count of rows written so far, used to show progress while still processing. */
+export async function countExtractedSubjects(documentId: string): Promise<number> {
+  const { count, error } = await db
+    .from("staged_matric_subjects")
+    .select("id", { count: "exact", head: true })
+    .eq("document_id", documentId);
+  if (error) return 0;
+  return count ?? 0;
+}
