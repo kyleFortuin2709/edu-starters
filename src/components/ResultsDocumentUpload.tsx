@@ -184,8 +184,6 @@ export function ResultsDocumentUpload({
       lastNotifiedCount.current = 0;
 
       const startedAt = Date.now();
-      let lastCount = 0;
-      let stableTicks = 0;
       // eslint-disable-next-line no-constant-condition
       while (true) {
         await new Promise((resolve) => setTimeout(resolve, POLL_MS));
@@ -210,6 +208,11 @@ export function ResultsDocumentUpload({
             onExtracted?.(rows);
             lastNotifiedCount.current = count;
           }
+          // Staged rows are the success signal the form needs. Do not keep the
+          // student waiting for a separate document-status update after marks
+          // have already been returned and prepopulated.
+          setPhase("done");
+          return;
         }
 
         if (state.status === "failed") {
@@ -222,11 +225,6 @@ export function ResultsDocumentUpload({
           setSubjects(rows);
           break;
         }
-        // Fallback: rows are already written and have stopped growing, so the
-        // reader is done even if the document status hasn't been flipped yet.
-        stableTicks = count > 0 && count === lastCount ? stableTicks + 1 : 0;
-        lastCount = count;
-        if (stableTicks >= 2) break;
       }
 
       const final = await fetchExtractedSubjects(documentId);
