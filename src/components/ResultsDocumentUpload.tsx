@@ -190,9 +190,7 @@ export function ResultsDocumentUpload({ userId }: { userId: string }) {
         setFound(await countExtractedSubjects(documentId));
         if (state.status === "failed") {
           throw new Error(
-            state.errorMessage
-              ? "We couldn't read your results from that document. Please try a clearer photo or PDF."
-              : "We couldn't read your results from that document. Please try a clearer photo or PDF.",
+            "We couldn't read your results from that document. Please try a clearer photo or PDF.",
           );
         }
         if (state.status === "review_required") break;
