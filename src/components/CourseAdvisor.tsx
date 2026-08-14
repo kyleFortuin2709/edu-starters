@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { ActionButton } from "@/components/ActionButton";
 import { FormMessage } from "@/components/FormMessage";
+import { RichText } from "@/components/RichText";
 import { askCourseAdvisor } from "@/lib/course-advisor.functions";
 import { STATUS_LABEL, describeCheck } from "@/lib/eligibility-format";
 import type { CourseEligibilityView } from "@/lib/eligibility-view";
@@ -126,10 +127,10 @@ export function CourseAdvisor({
               className={
                 turn.role === "user"
                   ? "rounded-2xl bg-muted px-4 py-3 text-sm font-medium"
-                  : "rounded-2xl border border-border px-4 py-3 text-sm whitespace-pre-wrap"
+                  : "rounded-2xl border border-border px-4 py-3 text-sm"
               }
             >
-              {turn.content}
+              {turn.role === "assistant" ? <RichText content={turn.content} /> : turn.content}
             </li>
           ))}
           {pending && <li className="px-4 text-sm text-muted-foreground">Thinking…</li>}
