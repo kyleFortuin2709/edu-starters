@@ -40,7 +40,10 @@ export const extractProspectus = createServerFn({ method: "POST" })
           ...(token ? { Authorization: token } : {}),
           ...(apiKey ? { apikey: apiKey } : {}),
         },
-        body: JSON.stringify({ prospectusId: data.prospectusId }),
+        body: JSON.stringify({
+          prospectus_id: data.prospectusId,
+          prospectusId: data.prospectusId,
+        }),
         signal: controller.signal,
       });
     } catch (error) {
