@@ -26,6 +26,7 @@ import {
   hasBlockingGaps,
   publishStagedCourses,
   type BatchPublishOutcome,
+  resolveDuration,
 } from "@/lib/prospectus-publish";
 import { ExtractionProgress } from "@/components/ExtractionProgress";
 
