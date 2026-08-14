@@ -9,7 +9,7 @@ import {
   updateInstitution,
   type Institution,
 } from "@/lib/institutions";
-import type { ProspectusDocument } from "@/lib/prospectus";
+import { proposedInstitution, type ProspectusDocument } from "@/lib/prospectus";
 import { TextField } from "@/components/TextField";
 import { SelectField } from "@/components/SelectField";
 import { PublicationPill, ActivePill } from "@/components/StatusPill";
@@ -38,8 +38,8 @@ const EMPTY = {
  * university link.
  */
 export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
-  const proposal = doc.extraction_payload?.proposed_institution ?? null;
-  const detectedName = proposal?.name ?? doc.extraction_payload?.university_name ?? "";
+  const proposal = proposedInstitution(doc);
+  const detectedName = proposal?.name ?? doc.extraction_payload?.university_name ?? doc.title ?? "";
 
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [universities, setUniversities] = useState<AdminUniversity[]>([]);
