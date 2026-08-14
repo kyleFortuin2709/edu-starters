@@ -151,6 +151,31 @@ function ResultsPage() {
 
   const completed = rows.filter((r) => r.subjectId && r.mark.trim() !== "").length;
 
+  function handleExtracted(extracted: ExtractedSubject[]) {
+    if (extracted.length === 0) return;
+    const seen = new Set<string>();
+    const nextRows = extracted
+      .map((s) => {
+        let subjectId = s.subject_id ?? "";
+        if (!subjectId && s.subject_name_raw) {
+          subjectId = subjectNameToId.get(s.subject_name_raw.toLowerCase().trim()) ?? "";
+        }
+        return newRow(subjectId, s.percentage != null ? String(s.percentage) : "");
+      })
+      .filter((r) => {
+        if (!r.subjectId) return true;
+        if (seen.has(r.subjectId)) return false;
+        seen.add(r.subjectId);
+        return true;
+      });
+    setRows(nextRows);
+    setExtractionNotice(
+      `We found ${extracted.length} subject${extracted.length === 1 ? "" : "s"} in your document and added them below for you to review.`,
+    );
+    setSaved(false);
+    setFormError("");
+  }
+
   return (
     <SiteLayout>
       <section className="mx-auto w-full max-w-3xl px-6 py-14 md:py-20">
