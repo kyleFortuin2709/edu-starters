@@ -122,8 +122,17 @@ export type ApsCalculation = {
 };
 
 function pointsForMark(rule: ApsCalculationRule, mark: number): number | null {
-  const band = rule.aps_point_bands.find(
+  // Prefer the most specific (narrowest) matching band so a badly captured
+  // catch-all band (0-100) never masks a real one.
+  const matches = rule.aps_point_bands.filter(
     (b) => mark >= Number(b.min_percentage) && mark <= Number(b.max_percentage),
+  );
+  if (matches.length === 0) return null;
+  const band = matches.reduce((best, b) =>
+    Number(b.max_percentage) - Number(b.min_percentage) <
+    Number(best.max_percentage) - Number(best.min_percentage)
+      ? b
+      : best,
   );
   return band ? Number(band.points) : null;
 }
