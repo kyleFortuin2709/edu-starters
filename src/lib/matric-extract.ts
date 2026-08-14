@@ -15,7 +15,7 @@ export const MAX_FILE_BYTES = 20 * 1024 * 1024;
 export const ACCEPTED_MIME = ["image/jpeg", "image/jpg", "image/png", "application/pdf"];
 const ACCEPTED_EXT = ["jpg", "jpeg", "png", "pdf"];
 
-export type DocumentStatus = "processing" | "review_required" | "failed";
+export type DocumentStatus = "pending" | "processing" | "review_required" | "failed";
 
 export type ExtractedSubject = {
   id: string;
