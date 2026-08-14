@@ -80,30 +80,13 @@ function DashboardPage() {
           </Link>
         </div>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
+        <div className="mt-12 grid gap-6 md:grid-cols-2">
           <div className="rounded-[2rem] border border-border bg-card p-8">
             <span className="font-mono text-xs font-bold uppercase text-muted-foreground">
               Subjects entered
             </span>
             <p className="mt-6 font-display text-4xl font-semibold">{subjectCount}</p>
             <p className="mt-2 text-sm text-muted-foreground">NSC subjects with a mark saved.</p>
-          </div>
-          <div className="rounded-[2rem] border border-border bg-card p-8">
-            <div className="flex items-center gap-2">
-              <span
-                className={`size-2 rounded-full ${subjectCount > 0 ? "bg-success" : "bg-muted-foreground"}`}
-                aria-hidden="true"
-              />
-              <span className="font-mono text-xs font-bold uppercase">Results status</span>
-            </div>
-            <p className="mt-6 font-display text-2xl font-semibold">
-              {subjectCount > 0 ? "Results saved" : "Not started"}
-            </p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {subjectCount > 0
-                ? "You can edit or add subjects at any time."
-                : "Add your subjects and marks to get started."}
-            </p>
           </div>
           <div className="rounded-[2rem] border border-border bg-card p-8">
             <span className="font-mono text-xs font-bold uppercase text-muted-foreground">Next step</span>
