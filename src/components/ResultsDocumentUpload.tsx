@@ -177,6 +177,8 @@ export function ResultsDocumentUpload({ userId }: { userId: string }) {
       setPhase("processing");
 
       const startedAt = Date.now();
+      let lastCount = 0;
+      let stableTicks = 0;
       // eslint-disable-next-line no-constant-condition
       while (true) {
         await new Promise((resolve) => setTimeout(resolve, POLL_MS));
@@ -186,14 +188,23 @@ export function ResultsDocumentUpload({ userId }: { userId: string }) {
         }
         const state = await fetchDocumentState(documentId);
         if (cancelled.current) return;
+        const count = await countExtractedSubjects(documentId);
+        if (cancelled.current) return;
         setChecks((n) => n + 1);
-        setFound(await countExtractedSubjects(documentId));
+        setFound(count);
+
         if (state.status === "failed") {
           throw new Error(
             "We couldn't read your results from that document. Please try a clearer photo or PDF.",
           );
         }
-        if (state.status === "review_required") break;
+        // Anything other than "processing" means the reader is finished with it.
+        if (state.status !== "processing") break;
+        // Fallback: rows are already written and have stopped growing, so the
+        // reader is done even if the document status hasn't been flipped yet.
+        stableTicks = count > 0 && count === lastCount ? stableTicks + 1 : 0;
+        lastCount = count;
+        if (stableTicks >= 2) break;
       }
 
       const rows = await fetchExtractedSubjects(documentId);
