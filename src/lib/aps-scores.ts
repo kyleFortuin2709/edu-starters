@@ -34,7 +34,9 @@ export async function fetchMyApsByUniversity(userId: string): Promise<{
     .map((r) => ({
       subjectId: r.subject_id as string,
       mark: Number(r.mark),
-      subjectName: subjectNames.get(r.subject_id as string) ?? undefined,
+      ...(subjectNames.has(r.subject_id as string)
+        ? { subjectName: subjectNames.get(r.subject_id as string) as string }
+        : {}),
     }));
 
   const rulesById = new Map(rules.map((r) => [r.id, r]));
