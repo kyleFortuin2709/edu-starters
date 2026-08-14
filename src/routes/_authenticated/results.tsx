@@ -8,6 +8,7 @@ import { ActionButton } from "@/components/ActionButton";
 import { FormMessage } from "@/components/FormMessage";
 import { ResultsDocumentUpload } from "@/components/ResultsDocumentUpload";
 import { useAuth } from "@/lib/auth";
+import { type ExtractedSubject } from "@/lib/matric-extract";
 import {
   achievementLevelForMark,
   fetchMyResults,
@@ -43,6 +44,7 @@ function ResultsPage() {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [extractionNotice, setExtractionNotice] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -76,6 +78,14 @@ function ResultsPage() {
       map.set(s.category, list);
     }
     return [...map.entries()];
+  }, [subjects]);
+
+  const subjectNameToId = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const s of subjects) {
+      map.set(s.name.toLowerCase().trim(), s.id);
+    }
+    return map;
   }, [subjects]);
 
   function update(key: string, patch: Partial<Row>) {
