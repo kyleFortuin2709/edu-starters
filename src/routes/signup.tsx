@@ -109,6 +109,9 @@ function SignupPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+            <p className="-mt-3 text-xs text-muted-foreground">
+              Use something unique — common passwords found in past data breaches are blocked.
+            </p>
             <ActionButton type="submit" size="block" disabled={busy}>
               {busy ? "Creating your account…" : "Create my account"}
             </ActionButton>
