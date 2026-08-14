@@ -34,6 +34,7 @@ export function FacultyReviewCard({ prospectusId, universityId, staged, onStaged
   const [message, setMessage] = useState("");
   const [collapsed, setCollapsed] = useState(true);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  const [bulkBusy, setBulkBusy] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -99,6 +100,78 @@ export function FacultyReviewCard({ prospectusId, universityId, staged, onStaged
       setError("That faculty couldn't be published.");
     } finally {
       setBusyKey("");
+    }
+  }
+
+  /** Map every unresolved group onto its matching faculty, creating any that don't exist. */
+  async function autoFileAll() {
+    if (!universityId) return;
+    setError("");
+    setMessage("");
+    setBulkBusy("file");
+    try {
+      let known = [...faculties];
+      let filed = 0;
+      let created = 0;
+      for (const group of groups) {
+        const name = (group.match?.name ?? group.scraped ?? "").trim();
+        if (!name) continue;
+        let faculty =
+          group.match ??
+          known.find((f) => f.name.trim().toLowerCase() === name.toLowerCase()) ??
+          null;
+        if (!faculty) {
+          faculty = await createFaculty(universityId, name);
+          known = [...known, faculty];
+          created += 1;
+        }
+        const ids = group.courses
+          .filter((c) => c.status !== "published" && c.faculty_name?.trim() !== faculty!.name)
+          .map((c) => c.id);
+        if (ids.length === 0) continue;
+        await applyFacultyToGroup({ prospectusId, courseIds: ids, facultyName: faculty.name });
+        onStagedUpdated(ids, faculty.name);
+        filed += ids.length;
+      }
+      setFaculties(known.sort((a, b) => a.name.localeCompare(b.name)));
+      setMessage(
+        `${filed} staged course${filed === 1 ? "" : "s"} filed${
+          created > 0 ? `, ${created} new facult${created === 1 ? "y" : "ies"} created as drafts` : ""
+        }.`,
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Those faculties couldn't be filed.");
+    } finally {
+      setBulkBusy("");
+    }
+  }
+
+  /** Publish every faculty that a group currently points at. */
+  async function publishAll() {
+    setError("");
+    setMessage("");
+    setBulkBusy("publish");
+    try {
+      const targets = groups
+        .map((g) => g.match)
+        .filter((f): f is Faculty => !!f && (f.publication_status !== "published" || !f.is_active));
+      const unique = targets.filter((f, i) => targets.findIndex((x) => x.id === f.id) === i);
+      for (const faculty of unique) await publishFaculty(faculty.id);
+      const ids = new Set(unique.map((f) => f.id));
+      setFaculties((prev) =>
+        prev.map((f) =>
+          ids.has(f.id) ? { ...f, publication_status: "published" as const, is_active: true } : f,
+        ),
+      );
+      setMessage(
+        unique.length === 0
+          ? "Every mapped faculty is already live."
+          : `${unique.length} facult${unique.length === 1 ? "y" : "ies"} published.`,
+      );
+    } catch {
+      setError("Those faculties couldn't all be published.");
+    } finally {
+      setBulkBusy("");
     }
   }
 
@@ -170,6 +243,29 @@ export function FacultyReviewCard({ prospectusId, universityId, staged, onStaged
               {message}
             </p>
           )}
+
+          <div className="mt-5 flex flex-wrap gap-2 rounded-2xl border border-border bg-background p-4">
+            <button
+              type="button"
+              disabled={!!bulkBusy}
+              onClick={autoFileAll}
+              className="rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background hover:bg-primary disabled:opacity-60"
+            >
+              {bulkBusy === "file" ? "Filing all groups…" : `File all ${groups.length} groups`}
+            </button>
+            <button
+              type="button"
+              disabled={!!bulkBusy}
+              onClick={publishAll}
+              className="rounded-full border border-border px-5 py-2.5 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
+            >
+              {bulkBusy === "publish" ? "Publishing…" : "Publish all mapped faculties"}
+            </button>
+            <p className="w-full text-xs text-muted-foreground">
+              Filing uses the matching faculty where one exists and creates the rest as drafts using
+              the document's own wording. Review individual groups below only where you disagree.
+            </p>
+          </div>
 
           <div className="mt-6 space-y-4">
             {groups.map((group, index) => {
