@@ -21,9 +21,16 @@ export const Route = createFileRoute("/_authenticated/results")({
   head: () => ({
     meta: [
       { title: "Your NSC results — EduStarter" },
-      { name: "description", content: "Add and edit your NSC subjects and marks so EduStarter can work with your results." },
+      {
+        name: "description",
+        content:
+          "Add and edit your NSC subjects and marks so EduStarter can work with your results.",
+      },
       { property: "og:title", content: "Your NSC results — EduStarter" },
-      { property: "og:description", content: "Add and edit your NSC subjects and marks in EduStarter." },
+      {
+        property: "og:description",
+        content: "Add and edit your NSC subjects and marks in EduStarter.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -51,7 +58,10 @@ function ResultsPage() {
     let active = true;
     (async () => {
       try {
-        const [subjectList, results] = await Promise.all([fetchSubjects(), fetchMyResults(user.id)]);
+        const [subjectList, results] = await Promise.all([
+          fetchSubjects(),
+          fetchMyResults(user.id),
+        ]);
         if (!active) return;
         setSubjects(subjectList);
         setRows(
@@ -60,7 +70,8 @@ function ResultsPage() {
             : [newRow(), newRow(), newRow()],
         );
       } catch {
-        if (active) setFormError("We couldn't load your results right now. Please refresh the page.");
+        if (active)
+          setFormError("We couldn't load your results right now. Please refresh the page.");
       } finally {
         if (active) setLoading(false);
       }
@@ -179,13 +190,15 @@ function ResultsPage() {
   return (
     <SiteLayout>
       <section className="mx-auto w-full max-w-3xl px-6 py-14 md:py-20">
-        <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Your results</p>
+        <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+          Your results
+        </p>
         <h1 className="mt-4 font-display text-4xl font-semibold leading-tight tracking-tight">
           Add your <span className="italic text-primary">NSC subjects</span> and marks.
         </h1>
         <p className="mt-4 text-muted-foreground">
-          Add as many subjects as you took — there's no fixed number. You can come back and edit these at any
-          time.
+          Add as many subjects as you took — there's no fixed number. You can come back and edit
+          these at any time.
         </p>
 
         {user ? (
@@ -293,8 +306,8 @@ function ResultsPage() {
               ) : null}
 
               <p className="text-center text-xs text-muted-foreground">
-                Marks must be between 0 and 100, and each subject can only be added once. Only you can see
-                your results.
+                Marks must be between 0 and 100, and each subject can only be added once. Only you
+                can see your results.
               </p>
             </div>
           )}

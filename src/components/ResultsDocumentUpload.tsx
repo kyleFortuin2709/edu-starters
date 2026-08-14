@@ -91,15 +91,21 @@ function ExtractionSteps({
 
       {elapsed > 45 ? (
         <p className="mt-3 text-xs text-muted-foreground">
-          Busy documents and multi-page PDFs can take a few minutes. Keep this page open — we'll show your
-          subjects as soon as the reader is done.
+          Busy documents and multi-page PDFs can take a few minutes. Keep this page open — we'll
+          show your subjects as soon as the reader is done.
         </p>
       ) : null}
     </div>
   );
 }
 
-export function ResultsDocumentUpload({ userId, onExtracted }: { userId: string; onExtracted?: (subjects: ExtractedSubject[]) => void }) {
+export function ResultsDocumentUpload({
+  userId,
+  onExtracted,
+}: {
+  userId: string;
+  onExtracted?: (subjects: ExtractedSubject[]) => void;
+}) {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>("idle");
@@ -185,7 +191,9 @@ export function ResultsDocumentUpload({ userId, onExtracted }: { userId: string;
         await new Promise((resolve) => setTimeout(resolve, POLL_MS));
         if (cancelled.current) return;
         if (Date.now() - startedAt > POLL_TIMEOUT_MS) {
-          throw new Error("Reading your document is taking longer than expected. Please try again.");
+          throw new Error(
+            "Reading your document is taking longer than expected. Please try again.",
+          );
         }
         const state = await fetchDocumentState(documentId);
         if (cancelled.current) return;
@@ -230,20 +238,24 @@ export function ResultsDocumentUpload({ userId, onExtracted }: { userId: string;
       setPhase("done");
     } catch (caught) {
       if (cancelled.current) return;
-      setError(caught instanceof Error ? caught.message : "Something went wrong. Please try again.");
+      setError(
+        caught instanceof Error ? caught.message : "Something went wrong. Please try again.",
+      );
       setPhase("error");
     }
   }
 
   return (
     <div className="rounded-[2rem] border border-border bg-card p-6 md:p-8">
-      <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Faster option</p>
+      <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+        Faster option
+      </p>
       <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight">
         Upload your results document
       </h2>
       <p className="mt-2 text-sm text-muted-foreground">
-        Matric certificate, statement of results or a school report — take a photo or upload a JPG, PNG
-        or PDF (max 20 MB). We'll read the subjects and marks for you to review.
+        Matric certificate, statement of results or a school report — take a photo or upload a JPG,
+        PNG or PDF (max 20 MB). We'll read the subjects and marks for you to review.
       </p>
 
       <input
@@ -329,7 +341,13 @@ export function ResultsDocumentUpload({ userId, onExtracted }: { userId: string;
       ) : null}
 
       {file ? (
-        <ActionButton size="block" className="mt-5" onClick={handleSubmit} disabled={busy} type="button">
+        <ActionButton
+          size="block"
+          className="mt-5"
+          onClick={handleSubmit}
+          disabled={busy}
+          type="button"
+        >
           {busy ? "Reading your document…" : phase === "error" ? "Try again" : "Extract my results"}
         </ActionButton>
       ) : null}
@@ -338,16 +356,16 @@ export function ResultsDocumentUpload({ userId, onExtracted }: { userId: string;
         subjects.length === 0 ? (
           <div className="mt-6">
             <FormMessage>
-              We couldn't find any subjects in that document. Please try a clearer photo, or add your
-              subjects manually below.
+              We couldn't find any subjects in that document. Please try a clearer photo, or add
+              your subjects manually below.
             </FormMessage>
           </div>
         ) : (
           <div className="mt-6">
             <h3 className="font-display text-xl font-semibold">Extracted results</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              These were read from your document and are <strong>not verified</strong>. Please check every
-              subject and mark against your certificate, then capture them below.
+              These were read from your document and are <strong>not verified</strong>. Please check
+              every subject and mark against your certificate, then capture them below.
             </p>
             <div className="mt-4 overflow-x-auto rounded-2xl border border-border">
               <table className="w-full text-left text-sm">
