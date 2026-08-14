@@ -58,14 +58,14 @@ export async function saveMyProfile(input: {
   userId: string;
   firstName: string;
   lastName: string;
-  provinceId: string;
+  provinceId?: string;
 }) {
   const { error } = await supabase.from("profiles").upsert(
     {
       id: input.userId,
       first_name: input.firstName.trim(),
       last_name: input.lastName.trim(),
-      province_id: input.provinceId,
+      ...(input.provinceId ? { province_id: input.provinceId } : {}),
       onboarding_completed_at: new Date().toISOString(),
     },
     { onConflict: "id" },
@@ -74,5 +74,5 @@ export async function saveMyProfile(input: {
 }
 
 export function isProfileComplete(profile: StudentProfile | null): boolean {
-  return Boolean(profile?.first_name && profile?.last_name && profile?.province_id);
+  return Boolean(profile?.first_name && profile?.last_name);
 }
