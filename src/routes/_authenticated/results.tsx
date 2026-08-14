@@ -6,6 +6,7 @@ import { SelectField } from "@/components/SelectField";
 import { TextField } from "@/components/TextField";
 import { ActionButton } from "@/components/ActionButton";
 import { FormMessage } from "@/components/FormMessage";
+import { ResultsDocumentUpload } from "@/components/ResultsDocumentUpload";
 import { useAuth } from "@/lib/auth";
 import {
   achievementLevelForMark,
@@ -151,6 +152,12 @@ function ResultsPage() {
           Add as many subjects as you took — there's no fixed number. You can come back and edit these at any
           time.
         </p>
+
+        {user ? (
+          <div className="mt-8">
+            <ResultsDocumentUpload userId={user.id} />
+          </div>
+        ) : null}
 
         <div className="mt-8 rounded-[2rem] border border-border bg-card p-6 md:p-8">
           {loading ? (
