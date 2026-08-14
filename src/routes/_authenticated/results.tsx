@@ -190,7 +190,7 @@ function ResultsPage() {
 
         {user ? (
           <div className="mt-8">
-            <ResultsDocumentUpload userId={user.id} />
+            <ResultsDocumentUpload userId={user.id} onExtracted={handleExtracted} />
           </div>
         ) : null}
 
@@ -200,6 +200,9 @@ function ResultsPage() {
           ) : (
             <div className="space-y-5">
               <FormMessage>{formError}</FormMessage>
+              {extractionNotice ? (
+                <FormMessage tone="success">{extractionNotice}</FormMessage>
+              ) : null}
               {saved ? (
                 <FormMessage tone="success">
                   Your results are saved. {completed} subject{completed === 1 ? "" : "s"} recorded.
