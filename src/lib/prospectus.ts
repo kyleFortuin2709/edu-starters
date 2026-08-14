@@ -116,9 +116,9 @@ export function proposedInstitution(doc: ProspectusDocument): ProposedInstitutio
     province: str(pick(raw, ["province", "region"])),
     website_url: str(pick(raw, ["website_url", "website", "url"])),
     application_url: str(pick(raw, ["application_url", "apply_url", "applications_url"])),
-    notes: Array.isArray(raw['notes']) ? (raw['notes'] as string[]) : undefined,
+    notes: Array.isArray(raw['notes']) ? (raw['notes'] as string[]) : [],
   };
-  return Object.values(result).some((v) => v != null) ? result : null;
+  return result.name || result.city || result.province || result.short_name ? result : null;
 }
 
 export function proposedAps(doc: ProspectusDocument): ProposedApsPayload | null {
@@ -154,7 +154,7 @@ export function proposedAps(doc: ProspectusDocument): ProposedApsPayload | null 
       pick(raw, ["counting_subject_count", "subjects_counted", "subject_count"]),
     ),
     bands,
-    notes: Array.isArray(notes) ? (notes as string[]) : undefined,
+    notes: Array.isArray(notes) ? (notes as string[]) : [],
   };
   return result.name || result.counting_subject_count != null || bands.length > 0 || result.notes?.length
     ? result
