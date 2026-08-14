@@ -121,6 +121,34 @@ export function proposedInstitution(doc: ProspectusDocument): ProposedInstitutio
   return result.name || result.city || result.province || result.short_name ? result : null;
 }
 
+/**
+ * Extractors often put the percentage range only in a label ("60-69%",
+ * "less than 30%", "90 – 100"). Pull a numeric range out of such text so the
+ * band is usable for scoring instead of collapsing to a 0-100 catch-all.
+ */
+function rangeFromText(text: string | null | undefined): { min: number; max: number } | null {
+  if (!text) return null;
+  const t = String(text).replace(/[–—]/g, "-");
+  const pair = t.match(/(\d{1,3})\s*(?:%|percent)?\s*-\s*(\d{1,3})/);
+  if (pair?.[1] && pair[2]) {
+    const min = Number(pair[1]);
+    const max = Number(pair[2]);
+    if (min <= max && max <= 100) return { min, max };
+  }
+  const below = t.match(/(?:less than|below|under|<)\s*(\d{1,3})/i);
+  if (below?.[1]) {
+    const v = Number(below[1]);
+    if (v > 0 && v <= 100) return { min: 0, max: v - 1 };
+  }
+  const above = t.match(/(?:(\d{1,3})\s*(?:%|percent)?\s*(?:and above|or more|\+))|(?:above|over|>)\s*(\d{1,3})/i);
+  const av = above?.[1] ?? above?.[2];
+  if (av) {
+    const v = Number(av);
+    if (v >= 0 && v <= 100) return { min: v, max: 100 };
+  }
+  return null;
+}
+
 export function proposedAps(doc: ProspectusDocument): ProposedApsPayload | null {
   const payload = asRecord(doc.extraction_payload) ?? {};
   const raw =
@@ -134,15 +162,29 @@ export function proposedAps(doc: ProspectusDocument): ProposedApsPayload | null 
         .map((entry) => {
           const b = asRecord(entry);
           if (!b) return null;
-          const min = num(pick(b, ["min_percentage", "min", "from", "percentage_from", "lower"]));
-          const max = num(pick(b, ["max_percentage", "max", "to", "percentage_to", "upper"]));
+          let min = num(
+            pick(b, ["min_percentage", "min", "from", "percentage_from", "mark_from", "lower"]),
+          );
+          let max = num(
+            pick(b, ["max_percentage", "max", "to", "percentage_to", "mark_to", "upper"]),
+          );
           const points = num(pick(b, ["points", "aps_points", "value", "score"]));
+          const label = str(pick(b, ["label", "name", "level", "description"]));
+          if (min == null || max == null) {
+            const range =
+              rangeFromText(str(pick(b, ["range", "percentage_range", "marks", "percentage"]))) ??
+              rangeFromText(label);
+            if (range) {
+              min = min ?? range.min;
+              max = max ?? range.max;
+            }
+          }
           if (min == null && max == null && points == null) return null;
           return {
             min_percentage: min ?? 0,
             max_percentage: max ?? 100,
             points: points ?? 0,
-            label: str(pick(b, ["label", "name", "level", "description"])),
+            label,
           };
         })
         .filter((b): b is NonNullable<typeof b> => b != null)
