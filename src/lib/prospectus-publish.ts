@@ -12,18 +12,66 @@ import { proposedAps, type ProspectusDocument, type StagedCourse } from "./prosp
 
 export type MissingItem = { label: string; blocking: boolean };
 
+/**
+ * Typical South African qualification durations. Used only when the document
+ * itself never states a duration — the guess is recorded in course metadata.
+ */
+const DURATION_PATTERNS: { test: RegExp; years: number }[] = [
+  { test: /\b(higher certificate|certificate)\b/i, years: 1 },
+  { test: /\b(advanced diploma|postgraduate diploma|pgdip|honours|hons|b[.\s]?tech)\b/i, years: 1 },
+  { test: /\b(masters?|m\.?\s?(a|sc|com|ed|phil)\b)/i, years: 2 },
+  { test: /\b(doctor of philosophy|phd|dphil|doctoral)\b/i, years: 3 },
+  { test: /\b(national diploma|diploma)\b/i, years: 3 },
+  { test: /\b(mbchb|mb ch b|bachelor of medicine)\b/i, years: 6 },
+  { test: /\b(bachelor of architecture|b[.\s]?arch|bvsc|veterinary)\b/i, years: 5 },
+  { test: /\b(bachelor of (engineering|pharmacy)|b[.\s]?eng|beng|bpharm|llb|bachelor of laws)\b/i, years: 4 },
+  { test: /\b(bachelor of (education|nursing|accounting|social work)|b[.\s]?ed|bcur|bsw)\b/i, years: 4 },
+  { test: /\b(bachelor|degree|b[.\s]?(a|sc|com|admin|is|th|lis)\b|^b[a-z]{1,4}$)/i, years: 3 },
+];
+
+/** Pull an explicit duration out of free text such as "3-year programme". */
+function durationFromText(text: string | null): number | null {
+  if (!text) return null;
+  const match =
+    text.match(/(\d(?:[.,]\d)?)\s*[-\s]?\s*(?:year|yr)s?\b/i) ??
+    text.match(/\bduration\s*[:\-]\s*(\d(?:[.,]\d)?)/i);
+  if (!match?.[1]) return null;
+  const value = Number(match[1].replace(",", "."));
+  return Number.isFinite(value) && value > 0 && value <= 8 ? value : null;
+}
+
+export type DurationGuess = { years: number; source: "stated" | "text" | "qualification" };
+
+/**
+ * Resolve a duration for a staged course: use what is stored, else what the
+ * document text states, else a typical duration for the qualification type.
+ */
+export function resolveDuration(s: StagedCourse): DurationGuess | null {
+  if (s.duration_years != null) return { years: s.duration_years, source: "stated" };
+  const fromText =
+    durationFromText(s.description) ??
+    durationFromText(s.requirements_text) ??
+    durationFromText(s.qualification_name);
+  if (fromText != null) return { years: fromText, source: "text" };
+  const haystack = `${s.qualification_name ?? ""} ${s.name} ${s.code ?? ""}`.trim();
+  for (const pattern of DURATION_PATTERNS) {
+    if (pattern.test.test(haystack)) return { years: pattern.years, source: "qualification" };
+  }
+  return null;
+}
+
 /** Everything a reviewer still has to fill in before a record can go live. */
 export function findMissingInformation(s: StagedCourse): MissingItem[] {
   const items: MissingItem[] = [];
   if (!s.name.trim()) items.push({ label: "Course name", blocking: true });
   if (!s.university_id) items.push({ label: "University link", blocking: true });
-  if (!s.qualification_name) items.push({ label: "Qualification type", blocking: false });
-  if (!s.faculty_name) items.push({ label: "Faculty", blocking: false });
-  if (s.aps_requirement == null) items.push({ label: "APS requirement", blocking: false });
-  if (s.duration_years == null) items.push({ label: "Duration (years)", blocking: false });
+  if (!s.qualification_name) items.push({ label: "Qualification type", blocking: true });
+  if (!s.faculty_name) items.push({ label: "Faculty", blocking: true });
+  if (s.aps_requirement == null) items.push({ label: "APS requirement", blocking: true });
+  if (resolveDuration(s) == null) items.push({ label: "Duration (years)", blocking: true });
   const hasSubjects = (s.extracted_payload?.subject_requirements?.length ?? 0) > 0;
   if (!hasSubjects && !s.requirements_text)
-    items.push({ label: "Subject requirements", blocking: false });
+    items.push({ label: "Subject requirements", blocking: true });
   if (s.source_page == null) items.push({ label: "Source page in the PDF", blocking: false });
   return items;
 }
@@ -201,6 +249,12 @@ export async function publishStagedCourse(s: StagedCourse): Promise<PublishResul
   const facultyId = await resolveFaculty(s.university_id, s.faculty_name);
   const qualificationTypeId = await resolveQualificationType(s.qualification_name);
 
+  const duration = resolveDuration(s);
+  if (duration && duration.source !== "stated")
+    warnings.push(
+      `${s.name}: no duration was stated, so a typical ${duration.years}-year duration was used for this qualification type.`,
+    );
+
   const { data: course, error: courseError } = await supabase
     .from("courses")
     .insert({
@@ -210,7 +264,7 @@ export async function publishStagedCourse(s: StagedCourse): Promise<PublishResul
       name: s.name,
       code: s.code,
       description: s.description,
-      duration_years: s.duration_years,
+      duration_years: duration?.years ?? null,
       aps_requirement: s.aps_requirement,
       application_url: s.application_url,
       is_active: true,
@@ -222,6 +276,7 @@ export async function publishStagedCourse(s: StagedCourse): Promise<PublishResul
         staged_course_id: s.id,
         source_page: s.source_page,
         requirements_text: s.requirements_text,
+        duration_source: duration?.source ?? null,
       },
     })
     .select("id")
