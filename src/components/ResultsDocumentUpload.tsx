@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, FileText, Loader2, Upload, X } from "lucide-react";
+import { Camera, Check, FileText, Loader2, Upload, X } from "lucide-react";
 import { ActionButton } from "@/components/ActionButton";
 import { FormMessage } from "@/components/FormMessage";
 import {
@@ -8,11 +8,12 @@ import {
   startExtraction,
   uploadResultsDocument,
   validateFile,
+  countExtractedSubjects,
   type ExtractedSubject,
 } from "@/lib/matric-extract";
 
 const POLL_MS = 2500;
-const POLL_TIMEOUT_MS = 180_000;
+const POLL_TIMEOUT_MS = 300_000;
 
 type Phase = "idle" | "uploading" | "starting" | "processing" | "done" | "error";
 
@@ -22,12 +23,92 @@ const PHASE_LABEL: Record<string, string> = {
   processing: "Extracting your subjects and marks…",
 };
 
+const STEPS = [
+  { key: "uploading", label: "Uploading your document" },
+  { key: "starting", label: "Sending it to the reader" },
+  { key: "processing", label: "Reading subjects and marks" },
+  { key: "done", label: "Ready for you to review" },
+] as const;
+
+function ExtractionSteps({
+  phase,
+  elapsed,
+  found,
+  checks,
+}: {
+  phase: Phase;
+  elapsed: number;
+  found: number;
+  checks: number;
+}) {
+  const activeIndex = STEPS.findIndex((s) => s.key === phase);
+  const percent = Math.min(95, (1 - Math.exp(-elapsed / 45)) * 100);
+
+  return (
+    <div className="mt-5 rounded-2xl border border-border bg-background p-4">
+      <div className="flex items-center gap-2">
+        <Loader2 className="size-4 animate-spin text-primary" aria-hidden="true" />
+        <p className="text-sm font-semibold">{PHASE_LABEL[phase] ?? "Working…"}</p>
+      </div>
+
+      <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
+        <div
+          className="h-full rounded-full bg-primary transition-[width] duration-500 ease-out"
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+      <p className="mt-1.5 font-mono text-[0.65rem] uppercase tracking-widest text-muted-foreground">
+        {Math.round(elapsed)}s elapsed · {checks} status {checks === 1 ? "check" : "checks"}
+        {found > 0 ? ` · ${found} subjects found so far` : ""}
+      </p>
+
+      <ul className="mt-4 space-y-2">
+        {STEPS.map((step, index) => {
+          const done = activeIndex > index;
+          const active = activeIndex === index;
+          return (
+            <li
+              key={step.key}
+              className={
+                active
+                  ? "flex items-center gap-2 text-sm font-medium text-foreground"
+                  : done
+                    ? "flex items-center gap-2 text-sm text-muted-foreground"
+                    : "flex items-center gap-2 text-sm text-muted-foreground/60"
+              }
+            >
+              {done ? (
+                <Check className="size-4 shrink-0 text-success" aria-hidden="true" />
+              ) : active ? (
+                <Loader2 className="size-4 shrink-0 animate-spin text-primary" aria-hidden="true" />
+              ) : (
+                <span className="size-4 shrink-0 rounded-full border border-border" />
+              )}
+              {step.label}
+            </li>
+          );
+        })}
+      </ul>
+
+      {elapsed > 45 ? (
+        <p className="mt-3 text-xs text-muted-foreground">
+          Busy documents and multi-page PDFs can take a few minutes. Keep this page open — we'll show your
+          subjects as soon as the reader is done.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 export function ResultsDocumentUpload({ userId }: { userId: string }) {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState("");
   const [subjects, setSubjects] = useState<ExtractedSubject[] | null>(null);
+  const [elapsed, setElapsed] = useState(0);
+  const [found, setFound] = useState(0);
+  const [checks, setChecks] = useState(0);
   const fileInput = useRef<HTMLInputElement>(null);
   const cameraInput = useRef<HTMLInputElement>(null);
   const cancelled = useRef(false);
@@ -49,6 +130,13 @@ export function ResultsDocumentUpload({ userId }: { userId: string }) {
   }, [file]);
 
   const busy = phase === "uploading" || phase === "starting" || phase === "processing";
+
+  useEffect(() => {
+    if (!busy) return;
+    const started = Date.now();
+    const id = window.setInterval(() => setElapsed((Date.now() - started) / 1000), 250);
+    return () => window.clearInterval(id);
+  }, [busy]);
 
   function choose(next: File | null) {
     if (busy || !next) return;
@@ -78,6 +166,9 @@ export function ResultsDocumentUpload({ userId }: { userId: string }) {
     if (!file || busy) return;
     setError("");
     setSubjects(null);
+    setElapsed(0);
+    setFound(0);
+    setChecks(0);
     try {
       setPhase("uploading");
       const path = await uploadResultsDocument(userId, file);
@@ -94,8 +185,15 @@ export function ResultsDocumentUpload({ userId }: { userId: string }) {
           throw new Error("Reading your document is taking longer than expected. Please try again.");
         }
         const state = await fetchDocumentState(documentId);
+        if (cancelled.current) return;
+        setChecks((n) => n + 1);
+        setFound(await countExtractedSubjects(documentId));
         if (state.status === "failed") {
-          throw new Error("We couldn't read your results from that document. Please try a clearer photo or PDF.");
+          throw new Error(
+            state.errorMessage
+              ? "We couldn't read your results from that document. Please try a clearer photo or PDF."
+              : "We couldn't read your results from that document. Please try a clearer photo or PDF.",
+          );
         }
         if (state.status === "review_required") break;
       }
@@ -201,10 +299,7 @@ export function ResultsDocumentUpload({ userId }: { userId: string }) {
       ) : null}
 
       {busy ? (
-        <div className="mt-5 flex items-center gap-2 rounded-2xl border border-border bg-background px-4 py-3 text-sm font-medium">
-          <Loader2 className="size-4 animate-spin text-primary" aria-hidden="true" />
-          {PHASE_LABEL[phase] ?? "Working…"}
-        </div>
+        <ExtractionSteps phase={phase} elapsed={elapsed} found={found} checks={checks} />
       ) : null}
 
       {file ? (
