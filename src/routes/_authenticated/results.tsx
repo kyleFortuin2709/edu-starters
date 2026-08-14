@@ -293,9 +293,11 @@ function ResultsPage() {
                 Add another subject
               </button>
 
-              <ActionButton size="block" onClick={handleSave} disabled={saving}>
-                {saving ? "Saving…" : "Save my results"}
-              </ActionButton>
+              {!saved ? (
+                <ActionButton size="block" onClick={handleSave} disabled={saving}>
+                  {saving ? "Saving…" : "Save my results"}
+                </ActionButton>
+              ) : null}
 
               {saved ? (
                 <Link
