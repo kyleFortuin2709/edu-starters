@@ -67,7 +67,7 @@ export function findMissingInformation(s: StagedCourse): MissingItem[] {
   if (!s.university_id) items.push({ label: "University link", blocking: true });
   if (!s.qualification_name) items.push({ label: "Qualification type", blocking: true });
   if (!s.faculty_name) items.push({ label: "Faculty", blocking: true });
-  if (s.aps_requirement == null) items.push({ label: "APS requirement", blocking: true });
+  if (s.aps_requirement == null) items.push({ label: "APS requirement", blocking: false });
   if (resolveDuration(s) == null) items.push({ label: "Duration (years)", blocking: true });
   const hasSubjects = (s.extracted_payload?.subject_requirements?.length ?? 0) > 0;
   if (!hasSubjects && !s.requirements_text)
