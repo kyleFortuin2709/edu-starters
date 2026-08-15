@@ -244,6 +244,36 @@ export function ApsCalculatorAiReviewCard({
         <FormMessage>{error}</FormMessage>
         {message && !error ? <FormMessage tone="success">{message}</FormMessage> : null}
       </div>
+
+      {allowAdding && universityId ? (
+        adding ? (
+          <div className="mt-6 rounded-2xl border border-border bg-card p-5">
+            <p className="font-mono text-xs font-bold uppercase text-muted-foreground">
+              New calculator
+            </p>
+            <div className="mt-4">
+              <ApsCalculatorForm
+                universityId={universityId}
+                faculties={faculties}
+                resolutionMethod={resolutionMethod}
+                onResolutionMethodChange={() => undefined}
+                onSaved={async () => {
+                  setAdding(false);
+                  await load();
+                  setMessage("Calculator added as a draft. Activate it when you're ready.");
+                }}
+                onCancel={() => setAdding(false)}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="mt-6">
+            <ActionButton type="button" onClick={() => setAdding(true)}>
+              Add another calculator
+            </ActionButton>
+          </div>
+        )
+      ) : null}
     </div>
   );
 }
