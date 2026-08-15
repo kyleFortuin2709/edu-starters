@@ -368,10 +368,7 @@ function ProspectusDetailPage() {
         </div>
       )}
 
-      <ApsRuleReviewCard
-        doc={doc}
-        onRuleLinked={(ruleId) => setDoc((prev) => (prev ? { ...prev, aps_rule_id: ruleId } : prev))}
-      >
+      <ApsRuleReviewCard doc={doc}>
         {doc.university_id ? (
           <ApsCalculatorManager
             universityId={doc.university_id}
