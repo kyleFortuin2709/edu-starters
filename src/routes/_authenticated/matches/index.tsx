@@ -233,12 +233,28 @@ function MatchesPage() {
               />
             </div>
 
+            {!recommendationsAvailable ? (
+              <div className="mt-6 flex flex-col gap-4 rounded-[2rem] border border-dashed border-border bg-card p-6 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="font-display text-lg font-semibold">
+                    Want more personalised recommendations?
+                  </h2>
+                  <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+                    Complete your Career &amp; Study Profile to see which of your eligible options
+                    best match your interests.
+                  </p>
+                </div>
+                <Link to="/direction" className="shrink-0">
+                  <ActionButton size="lg">Find My Best Matches</ActionButton>
+                </Link>
+              </div>
+            ) : null}
+
             <div
               role="tablist"
               aria-label="Eligibility status"
               className="mt-10 flex flex-wrap gap-2"
             >
-              {null}
               {TABS.map(({ status, label }) => (
                 <button
                   key={status}
