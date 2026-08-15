@@ -144,6 +144,13 @@ function CourseDetailPage() {
           ) : null}
         </header>
 
+        <CourseOverview
+          courseName={eligibility.courseName}
+          qualificationName={eligibility.qualificationName ?? null}
+          facultyName={eligibility.facultyName ?? null}
+          description={course?.description ?? null}
+        />
+
         {unmet.length > 0 && (
           <div className={cn("mt-6 rounded-[2rem] border bg-card p-8", tone.border)}>
             <h2 className="font-display text-2xl font-semibold">What's standing in the way</h2>
