@@ -15,13 +15,13 @@ export function EligibilityCourseCard({
   course,
   recommendation,
   reason,
-  isTopPick,
+  topPickRank,
   className,
 }: {
   course: CourseEligibilityView;
   recommendation?: CourseRecommendation | undefined;
   reason?: string | null;
-  isTopPick?: boolean;
+  topPickRank?: number | undefined;
   className?: string;
 }) {
   const tone = STATUS_TONE[course.status];
@@ -29,6 +29,7 @@ export function EligibilityCourseCard({
   const matchLabel = recommendation ? recommendationLabel(recommendation) : null;
   const matchScore = recommendation ? recommendationScoreText(recommendation) : null;
   const matchTone = recommendationTone(matchLabel);
+  const showTopPick = Boolean(topPickRank && matchLabel);
 
   return (
     <Link
@@ -37,13 +38,24 @@ export function EligibilityCourseCard({
       className={cn(
         "group relative block rounded-[2rem] border bg-card p-8 transition-all hover:shadow-lg",
         tone.border,
-        isTopPick && matchLabel ? "ring-2 ring-primary/40 ring-offset-2 ring-offset-background" : null,
+        showTopPick
+          ? topPickRank === 1
+            ? "ring-2 ring-primary ring-offset-2 ring-offset-background shadow-md"
+            : "ring-2 ring-primary/40 ring-offset-2 ring-offset-background"
+          : null,
         className,
       )}
     >
-      {isTopPick && matchLabel ? (
-        <span className="absolute -top-3 left-8 rounded-full border border-primary/30 bg-primary px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-wide text-primary-foreground">
-          Top recommendation
+      {showTopPick ? (
+        <span
+          className={cn(
+            "absolute -top-3 left-8 rounded-full px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-wide",
+            topPickRank === 1
+              ? "bg-primary text-primary-foreground"
+              : "border border-primary/40 bg-background text-primary",
+          )}
+        >
+          {topPickRank === 1 ? "Top recommendation" : `Recommended #${topPickRank}`}
         </span>
       ) : null}
       <div className="mb-5 flex items-start justify-between gap-4">
