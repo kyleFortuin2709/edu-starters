@@ -17,6 +17,11 @@ type Props = {
   prospectusId: string;
   universityId: string | null;
   resolutionMethod?: ApsResolutionMethod;
+  /** Render the card even when the extraction found nothing. */
+  showWhenEmpty?: boolean;
+  /** Allow adding extra calculators by hand from inside this card. */
+  allowAdding?: boolean;
+  title?: string;
 };
 
 /**
@@ -28,10 +33,14 @@ export function ApsCalculatorAiReviewCard({
   prospectusId,
   universityId,
   resolutionMethod = "HIGHEST_APPLICABLE",
+  showWhenEmpty = false,
+  allowAdding = false,
+  title = "Detected APS rules",
 }: Props) {
   const [suggestions, setSuggestions] = useState<ApsCalculator[]>([]);
   const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -74,16 +83,26 @@ export function ApsCalculatorAiReviewCard({
     }
   }
 
-  if (loading) return null;
-  if (suggestions.length === 0) return null;
+  if (loading) return showWhenEmpty ? (
+    <div className="mt-10 rounded-[2rem] border border-border bg-card p-6 md:p-8 text-sm text-muted-foreground">
+      Loading detected APS rules…
+    </div>
+  ) : null;
+  if (suggestions.length === 0 && !showWhenEmpty) return null;
 
   return (
-    <div className="mt-10 rounded-[2rem] border border-warning/50 bg-warning/5 p-6 md:p-8">
-      <h3 className="font-display text-xl font-semibold">Detected APS rules</h3>
+    <div
+      className={`mt-10 rounded-[2rem] border p-6 md:p-8 ${
+        suggestions.length > 0 ? "border-warning/50 bg-warning/5" : "border-border bg-card"
+      }`}
+    >
+      <h3 className="font-display text-xl font-semibold">{title}</h3>
       <p className="mt-1 text-sm text-muted-foreground">
-        The extraction found {suggestions.length} possible APS rule
-        {suggestions.length === 1 ? "" : "s"} in this prospectus. Nothing is used until you accept
-        it and confirm.
+        {suggestions.length > 0
+          ? `The extraction found ${suggestions.length} possible APS rule${
+              suggestions.length === 1 ? "" : "s"
+            } in this prospectus. Nothing is used until you accept it and confirm.`
+          : "The extraction didn't find any APS rules in this prospectus. You can add a calculator by hand."}
       </p>
 
       <ul className="mt-6 space-y-4">
@@ -225,6 +244,36 @@ export function ApsCalculatorAiReviewCard({
         <FormMessage>{error}</FormMessage>
         {message && !error ? <FormMessage tone="success">{message}</FormMessage> : null}
       </div>
+
+      {allowAdding && universityId ? (
+        adding ? (
+          <div className="mt-6 rounded-2xl border border-border bg-card p-5">
+            <p className="font-mono text-xs font-bold uppercase text-muted-foreground">
+              New calculator
+            </p>
+            <div className="mt-4">
+              <ApsCalculatorForm
+                universityId={universityId}
+                faculties={faculties}
+                resolutionMethod={resolutionMethod}
+                onResolutionMethodChange={() => undefined}
+                onSaved={async () => {
+                  setAdding(false);
+                  await load();
+                  setMessage("Calculator added as a draft. Activate it when you're ready.");
+                }}
+                onCancel={() => setAdding(false)}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="mt-6">
+            <ActionButton type="button" onClick={() => setAdding(true)}>
+              Add another calculator
+            </ActionButton>
+          </div>
+        )
+      ) : null}
     </div>
   );
 }
