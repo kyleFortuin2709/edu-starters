@@ -5,6 +5,7 @@ import { ActionButton } from "@/components/ActionButton";
 import { EligibilityStatusBadge } from "@/components/EligibilityStatusBadge";
 import { SaveCourseButton } from "@/components/SaveCourseButton";
 import { CourseAdvisor } from "@/components/CourseAdvisor";
+import { CourseOverview } from "@/components/CourseOverview";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { fetchCourseWithRequirements, type CourseWithRequirements } from "@/lib/catalogue";
@@ -260,6 +261,13 @@ function CourseDetailPage() {
         )}
 
         <CourseAdvisor course={eligibility} description={course?.description ?? null} />
+
+        <CourseOverview
+          courseName={eligibility.courseName}
+          qualificationName={eligibility.qualificationName ?? null}
+          facultyName={eligibility.facultyName ?? null}
+          description={course?.description ?? null}
+        />
       </section>
     </SiteLayout>
   );
