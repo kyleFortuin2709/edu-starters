@@ -112,10 +112,17 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doc.id, doc.university_id, doc.extracted_at, detectedName]);
 
-  const provinceOptions = useMemo(
-    () => provinces.map((p) => ({ value: p.id, label: p.name })),
-    [provinces],
-  );
+  const provinceOptions = useMemo(() => {
+    // Merge the fetched province list with the full set of South African
+    // provinces so the dropdown is always complete even if the backend is
+    // missing rows.
+    const merged = new Map<string, Province>();
+    for (const p of ALL_SA_PROVINCES) merged.set(p.id, p);
+    for (const p of provinces) merged.set(p.id, p);
+    return Array.from(merged.values())
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((p) => ({ value: p.id, label: p.name }));
+  }, [provinces]);
 
   function set(key: keyof typeof EMPTY, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
