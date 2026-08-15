@@ -45,6 +45,14 @@ function InterestProfilesPage() {
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState<Record<RiasecDimension, number> | null>(null);
+  const [progress, setProgress] = useState<{
+    total: number;
+    processed: number;
+    currentBatch: number;
+    totalBatches: number;
+    label: string;
+  } | null>(null);
+
 
   const load = () =>
     Promise.all([fetchAdminCourses(), fetchCourseRiasecProfiles()])
