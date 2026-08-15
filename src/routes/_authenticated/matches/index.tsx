@@ -149,8 +149,13 @@ function MatchesPage() {
 
   const reasonFor = (courseId: string) =>
     recommendationReason(careerProfile?.percentages, courseProfiles.get(courseId));
-  const topPickId =
-    recommendationsAvailable && byStatus.length > 1 ? byStatus[0]?.courseId ?? null : null;
+  const topPickIds = useMemo(() => {
+    if (!recommendationsAvailable || byStatus.length < 2) return [] as string[];
+    return byStatus
+      .filter((c) => recommendations?.get(c.courseId))
+      .slice(0, 3)
+      .map((c) => c.courseId);
+  }, [recommendationsAvailable, byStatus, recommendations]);
 
   const setFilter = (key: keyof EligibilityFilters) => (value: string) =>
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -294,7 +299,11 @@ function MatchesPage() {
                     course={course}
                     recommendation={recommendations?.get(course.courseId)}
                     reason={reasonFor(course.courseId)}
-                    isTopPick={course.courseId === topPickId}
+                    topPickRank={
+                      topPickIds.indexOf(course.courseId) >= 0
+                        ? topPickIds.indexOf(course.courseId) + 1
+                        : undefined
+                    }
                   />
                 ))}
               </div>
