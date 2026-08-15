@@ -238,6 +238,7 @@ function MatchesPage() {
               aria-label="Eligibility status"
               className="mt-10 flex flex-wrap gap-2"
             >
+              {null}
               {TABS.map(({ status, label }) => (
                 <button
                   key={status}
