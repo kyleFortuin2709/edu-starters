@@ -14,6 +14,11 @@ import {
   type CourseEligibilityView,
   type EligibilityFilters,
 } from "@/lib/eligibility-view";
+import {
+  fetchCourseRecommendations,
+  sortByRecommendation,
+  type RecommendationMap,
+} from "@/lib/recommendations";
 
 export const Route = createFileRoute("/_authenticated/matches/")({
   head: () => ({
@@ -68,6 +73,9 @@ function MatchesPage() {
   const [error, setError] = useState("");
   const [tab, setTab] = useState<EligibilityStatus>("YOU_QUALIFY");
   const [filters, setFilters] = useState<EligibilityFilters>(EMPTY_FILTERS);
+  // Recommendations load after eligibility and never block or change it.
+  const [recommendations, setRecommendations] = useState<RecommendationMap | null>(null);
+  const [recommendationsAvailable, setRecommendationsAvailable] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -89,15 +97,43 @@ function MatchesPage() {
     };
   }, [user]);
 
+  useEffect(() => {
+    if (!user || courses.length === 0) return;
+    let active = true;
+    fetchCourseRecommendations(
+      user.id,
+      courses.map((c) => c.courseId),
+    )
+      .then((map) => {
+        if (!active) return;
+        const anyAvailable = [...map.values()].some((r) => r.available);
+        setRecommendations(anyAvailable ? map : null);
+        setRecommendationsAvailable(anyAvailable);
+      })
+      .catch((err) => {
+        console.error("[recommendations] failed to load", err);
+        if (!active) return;
+        setRecommendations(null);
+        setRecommendationsAvailable(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [user, courses]);
+
   const options = useMemo(() => filterOptions(courses), [courses]);
   const filtered = useMemo(() => applyFilters(courses, filters), [courses, filters]);
   const byStatus = useMemo(
-    () => filtered.filter((c) => c.status === tab),
-    [filtered, tab],
+    () => sortByRecommendation(filtered.filter((c) => c.status === tab), recommendations),
+    [filtered, tab, recommendations],
   );
   const needsInfo = useMemo(
-    () => filtered.filter((c) => c.status === "MORE_INFORMATION_REQUIRED"),
-    [filtered],
+    () =>
+      sortByRecommendation(
+        filtered.filter((c) => c.status === "MORE_INFORMATION_REQUIRED"),
+        recommendations,
+      ),
+    [filtered, recommendations],
   );
   const countFor = (status: EligibilityStatus) =>
     filtered.filter((c) => c.status === status).length;
