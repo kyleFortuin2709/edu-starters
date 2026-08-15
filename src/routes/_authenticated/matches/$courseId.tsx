@@ -1,11 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { ActionButton } from "@/components/ActionButton";
 import { EligibilityStatusBadge } from "@/components/EligibilityStatusBadge";
 import { SaveCourseButton } from "@/components/SaveCourseButton";
 import { CourseAdvisor } from "@/components/CourseAdvisor";
 import { CourseOverview } from "@/components/CourseOverview";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { fetchCourseWithRequirements, type CourseWithRequirements } from "@/lib/catalogue";
@@ -53,6 +59,7 @@ function CourseDetailPage() {
   const [course, setCourse] = useState<CourseWithRequirements | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [resultsOpen, setResultsOpen] = useState(true);
 
   useEffect(() => {
     if (!user) return;
@@ -229,35 +236,62 @@ function CourseDetailPage() {
           ) : null}
         </div>
 
-        <div className="mt-6 rounded-[2rem] border border-border bg-card p-8">
-          <h2 className="font-display text-2xl font-semibold">Your results</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            How each of your subjects was treated by this institution's APS rule.
-          </p>
-          {results.length > 0 ? (
-            <ul className="mt-6 divide-y divide-border">
-              {results.map((subject) => (
-                <li
-                  key={subject.subjectId}
-                  className="flex items-center justify-between gap-4 py-3 text-sm"
-                >
-                  <span className="font-semibold">{subject.subjectName ?? "Subject"}</span>
-                  <span className="flex items-center gap-4 font-mono text-xs text-muted-foreground">
-                    <span>{subject.mark}%</span>
-                    <span>{subject.counted ? `${subject.points} pts` : subject.reason}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="mt-6">
-              <p className="text-sm text-muted-foreground">No results to compare yet.</p>
-              <Link to="/results" className="mt-4 inline-block">
-                <ActionButton variant="outline">Add my results</ActionButton>
-              </Link>
-            </div>
-          )}
-        </div>
+        <Collapsible open={resultsOpen} onOpenChange={setResultsOpen}>
+          <div className="mt-6 rounded-[2rem] border border-border bg-card p-8">
+            <CollapsibleTrigger asChild>
+              <button className="flex w-full items-center justify-between text-left">
+                <div>
+                  <h2 className="font-display text-2xl font-semibold">Your results</h2>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    How each of your subjects was treated by this institution's APS rule.
+                  </p>
+                </div>
+                <ChevronDown
+                  className={cn(
+                    "h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-300",
+                    resultsOpen && "rotate-180",
+                  )}
+                />
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              {results.length > 0 ? (
+                <ul className="mt-6 space-y-2">
+                  {results.map((subject) => {
+                    const hasFeedback = !subject.counted && subject.reason;
+                    return (
+                      <li
+                        key={subject.subjectId}
+                        className={cn(
+                          "flex items-center justify-between gap-4 rounded-2xl px-4 py-3 text-sm",
+                          subject.counted && "bg-success/10 text-success",
+                          hasFeedback && "bg-warning/10 text-warning",
+                        )}
+                      >
+                        <span className="font-semibold">{subject.subjectName ?? "Subject"}</span>
+                        <span className="flex items-center gap-4 font-mono text-xs">
+                          <span className={cn(subject.counted ? "text-success" : "text-warning")}>
+                            {subject.mark}%
+                          </span>
+                          <span className={cn("font-semibold", subject.counted ? "text-success" : "text-warning")}>
+                            {subject.counted ? `${subject.points} pts` : subject.reason}
+                          </span>
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <div className="mt-6">
+                  <p className="text-sm text-muted-foreground">No results to compare yet.</p>
+                  <Link to="/results" className="mt-4 inline-block">
+                    <ActionButton variant="outline">Add my results</ActionButton>
+                  </Link>
+                </div>
+              )}
+            </CollapsibleContent>
+          </div>
+        </Collapsible>
 
         {eligibility.notes.length > 0 && (
           <ul className="mt-6 space-y-2 text-xs text-muted-foreground">
