@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { ActionButton } from "@/components/ActionButton";
+import { GenerationProgress } from "@/components/GenerationProgress";
 import { fetchAdminCourses, type AdminCourse } from "@/lib/admin";
 import { RIASEC_META, RIASEC_ORDER, type RiasecDimension } from "@/lib/career";
 import {
