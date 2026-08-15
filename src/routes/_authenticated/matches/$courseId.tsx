@@ -1,11 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { ActionButton } from "@/components/ActionButton";
 import { EligibilityStatusBadge } from "@/components/EligibilityStatusBadge";
 import { SaveCourseButton } from "@/components/SaveCourseButton";
 import { CourseAdvisor } from "@/components/CourseAdvisor";
 import { CourseOverview } from "@/components/CourseOverview";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { fetchCourseWithRequirements, type CourseWithRequirements } from "@/lib/catalogue";
