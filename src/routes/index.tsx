@@ -126,10 +126,6 @@ function Index() {
         </div>
 
         <div className="mx-auto max-w-4xl text-center">
-          <div className="rise mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary">
-            <span className="size-2 animate-pulse rounded-full bg-primary" aria-hidden="true" />
-            2026 Applications
-          </div>
 
           <h1 className="rise font-display text-5xl font-semibold leading-[1.1] tracking-tight text-foreground md:text-7xl [animation-delay:100ms]">
             Discover SA university courses you may{" "}
