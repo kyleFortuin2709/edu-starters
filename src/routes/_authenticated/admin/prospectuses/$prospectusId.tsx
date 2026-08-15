@@ -21,6 +21,8 @@ import { extractProspectus } from "@/lib/prospectus-extract.functions";
 import { ApsRuleReviewCard } from "@/components/ApsRuleReviewCard";
 import { InstitutionReviewCard } from "@/components/InstitutionReviewCard";
 import { FacultyReviewCard } from "@/components/FacultyReviewCard";
+import { ApsCalculatorAiReviewCard } from "@/components/ApsCalculatorAiReviewCard";
+import { ApsCalculatorManager } from "@/components/ApsCalculatorManager";
 import {
   findMissingInformation,
   hasBlockingGaps,
@@ -401,6 +403,16 @@ function ProspectusDetailPage() {
           )
         }
       />
+
+      <ApsCalculatorAiReviewCard prospectusId={doc.id} universityId={doc.university_id} />
+
+      {doc.university_id ? (
+        <ApsCalculatorManager
+          universityId={doc.university_id}
+          variant="registration"
+          title="APS calculators for this institution"
+        />
+      ) : null}
 
       <div
         className={`mt-10 rounded-[2rem] border bg-card p-6 md:p-8 ${
