@@ -14,6 +14,11 @@ import {
   type CourseEligibilityView,
   type EligibilityFilters,
 } from "@/lib/eligibility-view";
+import {
+  fetchCourseRecommendations,
+  sortByRecommendation,
+  type RecommendationMap,
+} from "@/lib/recommendations";
 
 export const Route = createFileRoute("/_authenticated/matches/")({
   head: () => ({
@@ -68,6 +73,9 @@ function MatchesPage() {
   const [error, setError] = useState("");
   const [tab, setTab] = useState<EligibilityStatus>("YOU_QUALIFY");
   const [filters, setFilters] = useState<EligibilityFilters>(EMPTY_FILTERS);
+  // Recommendations load after eligibility and never block or change it.
+  const [recommendations, setRecommendations] = useState<RecommendationMap | null>(null);
+  const [recommendationsAvailable, setRecommendationsAvailable] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -89,15 +97,43 @@ function MatchesPage() {
     };
   }, [user]);
 
+  useEffect(() => {
+    if (!user || courses.length === 0) return;
+    let active = true;
+    fetchCourseRecommendations(
+      user.id,
+      courses.map((c) => c.courseId),
+    )
+      .then((map) => {
+        if (!active) return;
+        const anyAvailable = [...map.values()].some((r) => r.available);
+        setRecommendations(anyAvailable ? map : null);
+        setRecommendationsAvailable(anyAvailable);
+      })
+      .catch((err) => {
+        console.error("[recommendations] failed to load", err);
+        if (!active) return;
+        setRecommendations(null);
+        setRecommendationsAvailable(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [user, courses]);
+
   const options = useMemo(() => filterOptions(courses), [courses]);
   const filtered = useMemo(() => applyFilters(courses, filters), [courses, filters]);
   const byStatus = useMemo(
-    () => filtered.filter((c) => c.status === tab),
-    [filtered, tab],
+    () => sortByRecommendation(filtered.filter((c) => c.status === tab), recommendations),
+    [filtered, tab, recommendations],
   );
   const needsInfo = useMemo(
-    () => filtered.filter((c) => c.status === "MORE_INFORMATION_REQUIRED"),
-    [filtered],
+    () =>
+      sortByRecommendation(
+        filtered.filter((c) => c.status === "MORE_INFORMATION_REQUIRED"),
+        recommendations,
+      ),
+    [filtered, recommendations],
   );
   const countFor = (status: EligibilityStatus) =>
     filtered.filter((c) => c.status === status).length;
@@ -197,6 +233,23 @@ function MatchesPage() {
               />
             </div>
 
+            {!recommendationsAvailable ? (
+              <div className="mt-6 flex flex-col gap-4 rounded-[2rem] border border-dashed border-border bg-card p-6 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="font-display text-lg font-semibold">
+                    Want more personalised recommendations?
+                  </h2>
+                  <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+                    Complete your Career &amp; Study Profile to see which of your eligible options
+                    best match your interests.
+                  </p>
+                </div>
+                <Link to="/direction" className="shrink-0">
+                  <ActionButton size="lg">Find My Best Matches</ActionButton>
+                </Link>
+              </div>
+            ) : null}
+
             <div
               role="tablist"
               aria-label="Eligibility status"
@@ -222,7 +275,11 @@ function MatchesPage() {
             {byStatus.length > 0 ? (
               <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                 {byStatus.map((course) => (
-                  <EligibilityCourseCard key={course.courseId} course={course} />
+                  <EligibilityCourseCard
+                    key={course.courseId}
+                    course={course}
+                    recommendation={recommendations?.get(course.courseId)}
+                  />
                 ))}
               </div>
             ) : (
@@ -243,7 +300,11 @@ function MatchesPage() {
                 </p>
                 <div className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                   {needsInfo.map((course) => (
-                    <EligibilityCourseCard key={course.courseId} course={course} />
+                    <EligibilityCourseCard
+                      key={course.courseId}
+                      course={course}
+                      recommendation={recommendations?.get(course.courseId)}
+                    />
                   ))}
                 </div>
               </div>
