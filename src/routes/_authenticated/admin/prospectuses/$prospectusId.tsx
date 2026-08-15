@@ -368,16 +368,6 @@ function ProspectusDetailPage() {
         </div>
       )}
 
-      <ApsRuleReviewCard doc={doc}>
-        {doc.university_id ? (
-          <ApsCalculatorManager
-            universityId={doc.university_id}
-            variant="registration"
-            title="APS calculators for this institution"
-          />
-        ) : null}
-      </ApsRuleReviewCard>
-
       <InstitutionReviewCard
         doc={doc}
         onInstitutionLinked={(institution) => {
@@ -397,6 +387,16 @@ function ProspectusDetailPage() {
           );
         }}
       />
+
+      <ApsRuleReviewCard doc={doc} locked={!doc.university_id}>
+        {doc.university_id ? (
+          <ApsCalculatorManager
+            universityId={doc.university_id}
+            variant="registration"
+            title="APS calculators for this institution"
+          />
+        ) : null}
+      </ApsRuleReviewCard>
 
       <FacultyReviewCard
         prospectusId={doc.id}
@@ -418,7 +418,7 @@ function ProspectusDetailPage() {
       >
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="font-display text-2xl font-semibold">Step 3 · Staged courses</h2>
+            <h2 className="font-display text-2xl font-semibold">Step 4 · Staged courses</h2>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               {unpublishedCount > 0 ? (
                 <span className="rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-xs font-semibold text-warning-foreground">

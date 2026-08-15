@@ -183,7 +183,7 @@ export function FacultyReviewCard({ prospectusId, universityId, staged, onStaged
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="font-display text-2xl font-semibold">Step 2 · Faculties</h2>
+          <h2 className="font-display text-2xl font-semibold">Step 3 · Faculties</h2>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {notLiveCount > 0 ? (
               <span className="rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-xs font-semibold text-warning-foreground">
