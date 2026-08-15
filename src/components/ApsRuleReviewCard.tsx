@@ -20,9 +20,12 @@ import { TextField } from "@/components/TextField";
 export function ApsRuleReviewCard({
   doc,
   onRuleLinked,
+  children,
 }: {
   doc: ProspectusDocument;
   onRuleLinked: (ruleId: string | null) => void;
+  /** Extra review content (e.g. the institution's APS calculators). */
+  children?: React.ReactNode;
 }) {
   const proposal = proposedAps(doc);
   const methodology = apsMethodologyText(doc);
@@ -332,6 +335,7 @@ export function ApsRuleReviewCard({
           </div>
         </div>
       )}
+      {children}
         </>
       )}
     </div>

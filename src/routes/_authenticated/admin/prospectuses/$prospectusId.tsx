@@ -371,7 +371,15 @@ function ProspectusDetailPage() {
       <ApsRuleReviewCard
         doc={doc}
         onRuleLinked={(ruleId) => setDoc((prev) => (prev ? { ...prev, aps_rule_id: ruleId } : prev))}
-      />
+      >
+        {doc.university_id ? (
+          <ApsCalculatorManager
+            universityId={doc.university_id}
+            variant="registration"
+            title="APS calculators for this institution"
+          />
+        ) : null}
+      </ApsRuleReviewCard>
 
       <InstitutionReviewCard
         doc={doc}
@@ -405,14 +413,6 @@ function ProspectusDetailPage() {
       />
 
       <ApsCalculatorAiReviewCard prospectusId={doc.id} universityId={doc.university_id} />
-
-      {doc.university_id ? (
-        <ApsCalculatorManager
-          universityId={doc.university_id}
-          variant="registration"
-          title="APS calculators for this institution"
-        />
-      ) : null}
 
       <div
         className={`mt-10 rounded-[2rem] border bg-card p-6 md:p-8 ${
