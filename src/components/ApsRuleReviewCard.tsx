@@ -9,9 +9,12 @@ import { apsMethodologyText, proposedAps, type ProspectusDocument } from "@/lib/
  */
 export function ApsRuleReviewCard({
   doc,
+  locked = false,
   children,
 }: {
   doc: ProspectusDocument;
+  /** Greyed out until the institution has been registered/linked. */
+  locked?: boolean;
   /** Extra review content (e.g. the institution's APS calculators). */
   children?: React.ReactNode;
 }) {
@@ -19,10 +22,24 @@ export function ApsRuleReviewCard({
   const methodology = apsMethodologyText(doc);
   const [collapsed, setCollapsed] = useState(true);
 
+  if (locked) {
+    return (
+      <div className="mt-6 rounded-[2rem] border border-border bg-card p-6 opacity-60 md:p-8">
+        <h2 className="font-display text-2xl font-semibold text-muted-foreground">
+          Step 2 · APS calculation
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Register or link the institution in Step 1 first — APS calculators belong to an
+          institution.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="mt-6 rounded-[2rem] border border-border bg-card p-6 md:p-8">
       <div className="flex flex-wrap items-center gap-3">
-        <h2 className="font-display text-2xl font-semibold">APS calculation review</h2>
+        <h2 className="font-display text-2xl font-semibold">Step 2 · APS calculation</h2>
         <button
           type="button"
           onClick={() => setCollapsed((c) => !c)}
