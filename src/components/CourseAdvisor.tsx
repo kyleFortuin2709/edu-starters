@@ -93,7 +93,11 @@ export function CourseAdvisor({
 
   function persist(next: Turn[]) {
     if (!user) return;
-    void saveConversation(user.id, course.courseId, next).catch(() => {});
+    void saveConversation(user.id, course.courseId, next, {
+      courseName: course.courseName,
+      universityName: course.universityName ?? null,
+      facultyName: course.facultyName ?? null,
+    }).catch(() => {});
   }
 
   async function send(text: string) {

@@ -13,6 +13,36 @@ import {
 
 const POLL_MS = 1500;
 const POLL_TIMEOUT_MS = 300_000;
+const JOB_KEY = (userId: string) => `edustarter.matric.job.${userId}`;
+
+type StoredJob = { documentId: string; startedAt: number; fileName: string | null };
+
+function readJob(userId: string): StoredJob | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(JOB_KEY(userId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<StoredJob>;
+    if (typeof parsed.documentId !== "string") return null;
+    return {
+      documentId: parsed.documentId,
+      startedAt: typeof parsed.startedAt === "number" ? parsed.startedAt : Date.now(),
+      fileName: typeof parsed.fileName === "string" ? parsed.fileName : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeJob(userId: string, job: StoredJob | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (job) window.localStorage.setItem(JOB_KEY(userId), JSON.stringify(job));
+    else window.localStorage.removeItem(JOB_KEY(userId));
+  } catch {
+    /* ignore storage failures */
+  }
+}
 
 type Phase = "idle" | "uploading" | "starting" | "processing" | "done" | "error";
 
@@ -118,6 +148,8 @@ export function ResultsDocumentUpload({
   const cameraInput = useRef<HTMLInputElement>(null);
   const cancelled = useRef(false);
   const lastNotifiedCount = useRef(0);
+  const running = useRef(false);
+  const [resumed, setResumed] = useState(false);
 
   useEffect(() => {
     // React Strict Mode runs effect setup → cleanup → setup in development.
@@ -138,6 +170,20 @@ export function ResultsDocumentUpload({
     setPreviewUrl(url);
     return () => URL.revokeObjectURL(url);
   }, [file]);
+
+  // Resume a reading job that was started before the student navigated away.
+  useEffect(() => {
+    const job = readJob(userId);
+    if (!job) return;
+    if (Date.now() - job.startedAt > POLL_TIMEOUT_MS) {
+      writeJob(userId, null);
+      return;
+    }
+    setResumed(true);
+    setElapsed((Date.now() - job.startedAt) / 1000);
+    void pollDocument(job.documentId, job.startedAt);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   const busy = phase === "uploading" || phase === "starting" || phase === "processing";
 
@@ -172,23 +218,11 @@ export function ResultsDocumentUpload({
     if (cameraInput.current) cameraInput.current.value = "";
   }
 
-  async function handleSubmit() {
-    if (!file || busy) return;
-    cancelled.current = false;
-    setError("");
-    setSubjects(null);
-    setElapsed(0);
-    setFound(0);
-    setChecks(0);
+  async function pollDocument(documentId: string, startedAt: number) {
+    if (running.current) return;
+    running.current = true;
     try {
-      setPhase("uploading");
-      const path = await uploadResultsDocument(userId, file);
-      setPhase("starting");
-      const documentId = await startExtraction(userId, path);
       setPhase("processing");
-      lastNotifiedCount.current = 0;
-
-      const startedAt = Date.now();
       // eslint-disable-next-line no-constant-condition
       while (true) {
         await new Promise((resolve) => setTimeout(resolve, POLL_MS));
@@ -217,6 +251,7 @@ export function ResultsDocumentUpload({
           // student waiting for a separate document-status update after marks
           // have already been returned and prepopulated.
           setPhase("done");
+          writeJob(userId, null);
           return;
         }
 
@@ -241,13 +276,47 @@ export function ResultsDocumentUpload({
       }
       setSubjects(final);
       setPhase("done");
+      writeJob(userId, null);
     } catch (caught) {
       if (cancelled.current) return;
       setError(
         caught instanceof Error ? caught.message : "Something went wrong. Please try again.",
       );
       setPhase("error");
+      writeJob(userId, null);
+    } finally {
+      running.current = false;
     }
+  }
+
+  async function handleSubmit() {
+    if (!file || busy) return;
+    cancelled.current = false;
+    setError("");
+    setSubjects(null);
+    setElapsed(0);
+    setFound(0);
+    setChecks(0);
+    let documentId: string;
+    try {
+      setPhase("uploading");
+      const path = await uploadResultsDocument(userId, file);
+      setPhase("starting");
+      documentId = await startExtraction(userId, path);
+      lastNotifiedCount.current = 0;
+      writeJob(userId, {
+        documentId,
+        startedAt: Date.now(),
+        fileName: file.name,
+      });
+    } catch (caught) {
+      setError(
+        caught instanceof Error ? caught.message : "Something went wrong. Please try again.",
+      );
+      setPhase("error");
+      return;
+    }
+    await pollDocument(documentId, Date.now());
   }
 
   return (
@@ -342,7 +411,15 @@ export function ResultsDocumentUpload({
       ) : null}
 
       {busy ? (
-        <ExtractionSteps phase={phase} elapsed={elapsed} found={found} checks={checks} />
+        <>
+          {resumed ? (
+            <p className="mt-5 text-sm text-muted-foreground">
+              We picked your upload back up — reading carried on in the background while you were
+              on another page.
+            </p>
+          ) : null}
+          <ExtractionSteps phase={phase} elapsed={elapsed} found={found} checks={checks} />
+        </>
       ) : null}
 
       {file ? (

@@ -42,6 +42,45 @@ type Row = { key: string; subjectId: string; mark: string };
 let rowSeq = 0;
 const newRow = (subjectId = "", mark = ""): Row => ({ key: `r${rowSeq++}`, subjectId, mark });
 
+const DRAFT_KEY = (userId: string) => `edustarter.results.draft.${userId}`;
+
+function readDraft(userId: string): Row[] | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(DRAFT_KEY(userId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return null;
+    const rows = parsed.flatMap((item): Row[] => {
+      if (!item || typeof item !== "object") return [];
+      const row = item as { subjectId?: unknown; mark?: unknown };
+      return [
+        newRow(
+          typeof row.subjectId === "string" ? row.subjectId : "",
+          typeof row.mark === "string" ? row.mark : "",
+        ),
+      ];
+    });
+    return rows.length ? rows : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeDraft(userId: string, rows: Row[] | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (!rows) window.localStorage.removeItem(DRAFT_KEY(userId));
+    else
+      window.localStorage.setItem(
+        DRAFT_KEY(userId),
+        JSON.stringify(rows.map((r) => ({ subjectId: r.subjectId, mark: r.mark }))),
+      );
+  } catch {
+    /* ignore storage failures */
+  }
+}
+
 function ResultsPage() {
   const { user } = useAuth();
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -64,12 +103,23 @@ function ResultsPage() {
         ]);
         if (!active) return;
         setSubjects(subjectList);
+        const draft = readDraft(user.id);
         const initialRows =
           results.length
             ? results.map((r) => newRow(r.subject_id ?? "", r.mark != null ? String(r.mark) : ""))
             : [newRow(), newRow(), newRow()];
-        setRows(initialRows);
-        setSaved(results.length > 0);
+        if (draft) {
+          // Unsaved edits (including marks read from an uploaded document) win
+          // so nothing is lost when the student navigates away before saving.
+          setRows(draft);
+          setSaved(false);
+          setExtractionNotice(
+            "We kept the marks you hadn't saved yet. Check them and press Save my results.",
+          );
+        } else {
+          setRows(initialRows);
+          setSaved(results.length > 0);
+        }
       } catch {
         if (active)
           setFormError("We couldn't load your results right now. Please refresh the page.");
@@ -83,14 +133,25 @@ function ResultsPage() {
   }, [user]);
 
   const grouped = useMemo(() => {
+    return groupSubjects(subjects);
+  }, [subjects]);
+
+  // Keep unsaved edits in the browser so switching tabs or pages never loses them.
+  useEffect(() => {
+    if (!user || loading) return;
+    if (saved) writeDraft(user.id, null);
+    else writeDraft(user.id, rows);
+  }, [user, loading, saved, rows]);
+
+  function groupSubjects(items: Subject[]) {
     const map = new Map<string, Subject[]>();
-    for (const s of subjects) {
+    for (const s of items) {
       const list = map.get(s.category) ?? [];
       list.push(s);
       map.set(s.category, list);
     }
     return [...map.entries()];
-  }, [subjects]);
+  }
 
   const subjectNameToId = useMemo(() => {
     const map = new Map<string, string>();
@@ -153,6 +214,7 @@ function ResultsPage() {
         user.id,
         filled.map((r) => ({ subjectId: r.subjectId, mark: Number(r.mark) })),
       );
+      writeDraft(user.id, null);
       setSaved(true);
     } catch {
       setFormError("We couldn't save your results. Please check your connection and try again.");
