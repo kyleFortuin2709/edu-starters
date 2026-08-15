@@ -271,7 +271,6 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
           placeholder="Choose an institution type"
           options={[
             { value: "Public University", label: "Public University" },
-            { value: "University of Technology", label: "University of Technology" },
             { value: "TVET College", label: "TVET College" },
             { value: "Private College", label: "Private College" },
             { value: "Distance Learning Institution", label: "Distance Learning Institution" },
