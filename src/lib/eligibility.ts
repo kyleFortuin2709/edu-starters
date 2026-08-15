@@ -102,10 +102,37 @@ function compare(
   return { outcome, gap: outcome === "met" ? null : Math.round((required - actual) * 100) / 100 };
 }
 
-function levelOutcome(actual: number, required: number): RequirementOutcome {
-  // Achievement levels are derived from percentages; tolerance is applied on the
-  // percentage side only, so a level requirement is a strict pass/fail.
-  return actual >= required ? "met" : "not_met";
+/** Lowest percentage that still earns a given NSC achievement level. */
+function minPercentageForLevel(level: number): number {
+  switch (Math.round(level)) {
+    case 7:
+      return 80;
+    case 6:
+      return 70;
+    case 5:
+      return 60;
+    case 4:
+      return 50;
+    case 3:
+      return 40;
+    case 2:
+      return 30;
+    default:
+      return 0;
+  }
+}
+
+/**
+ * Achievement levels are derived from percentages, so the student's subject
+ * percentage tolerance is applied on the percentage side: a mark within the
+ * tolerance of the level's threshold counts as "almost".
+ */
+function levelOutcomeForMark(
+  mark: number,
+  requiredLevel: number,
+  tolerances: ToleranceSettings,
+): RequirementOutcome {
+  return evaluateSubjectPercentageRequirement(mark, minPercentageForLevel(requiredLevel), tolerances);
 }
 
 function evaluateRule(
@@ -162,7 +189,16 @@ function evaluateRule(
       const required = rule.min_achievement_level ?? null;
       const mark = rule.subject_id ? marks.get(rule.subject_id) : undefined;
       const actual = mark == null ? null : achievementLevelForMark(mark);
-      const { outcome, gap } = compare(actual, required, levelOutcome);
+      const outcome: RequirementCheckOutcome =
+        required == null
+          ? "met"
+          : mark == null
+            ? "unknown"
+            : levelOutcomeForMark(mark, required, tolerances);
+      const gap =
+        outcome === "met" || outcome === "unknown" || required == null || actual == null
+          ? null
+          : required - actual;
       const subjectName = nameFor(rule.subject_id, names);
       return {
         ...base,
@@ -185,15 +221,24 @@ function evaluateRule(
           ? null
           : Number(rule.min_percentage);
       const ids = rule.subject_ids ?? [];
-      const values = ids
-        .map((id) => marks.get(id))
-        .filter((m): m is number => m != null)
-        .map((m) => (isLevel ? achievementLevelForMark(m) : m));
+      const rawMarks = ids.map((id) => marks.get(id)).filter((m): m is number => m != null);
+      const bestMark = rawMarks.length ? Math.max(...rawMarks) : null;
+      const values = rawMarks.map((m) => (isLevel ? achievementLevelForMark(m) : m));
       // Best of the alternatives decides the outcome.
       const actual = values.length ? Math.max(...values) : null;
-      const { outcome, gap } = compare(actual, required, (a, r) =>
-        isLevel ? levelOutcome(a, r) : evaluateSubjectPercentageRequirement(a, r, tolerances),
-      );
+      const { outcome, gap } = isLevel
+        ? required == null || bestMark == null
+          ? { outcome: (required == null ? "met" : "unknown") as RequirementCheckOutcome, gap: null }
+          : (() => {
+              const o = levelOutcomeForMark(bestMark, required, tolerances);
+              return {
+                outcome: o as RequirementCheckOutcome,
+                gap: o === "met" || actual == null ? null : required - actual,
+              };
+            })()
+        : compare(actual, required, (a, r) =>
+            evaluateSubjectPercentageRequirement(a, r, tolerances),
+          );
       const subjectNames = ids.map((id) => nameFor(id, names));
       return {
         ...base,
