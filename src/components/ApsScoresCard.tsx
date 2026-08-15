@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { fetchMyApsByUniversity, type UniversityApsScore } from "@/lib/aps-scores";
 
 const STATUS_LABEL: Record<string, string> = {
-  demo: "Demo",
+  demo: "Provisional",
   unverified: "Unverified",
   verified: "Verified",
 };

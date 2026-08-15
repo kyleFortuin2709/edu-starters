@@ -211,7 +211,7 @@ export function calculateAps(
 
   if (rule.status !== "verified") {
     notes.unshift(
-      `This rule is marked ${rule.status.toUpperCase()} — the score is for demonstration only.`,
+      `This rule has not been verified yet — treat the score as provisional.`,
     );
   }
 

@@ -27,7 +27,7 @@ function buildContext(course: CourseEligibilityView, description: string | null)
     `Province: ${course.provinceName ?? "unknown"}`,
     `Qualification: ${course.qualificationName ?? "unknown"}`,
     description ? `Description: ${description}` : "Description: not available",
-    course.isDemoCourse ? "NOTE: this is demo/example course data, not verified institutional data." : "",
+    course.isDemoCourse ? "NOTE: this course data has not been verified against the institution." : "",
     "",
     `Eligibility status (decided by the deterministic engine, not by you): ${STATUS_LABEL[course.status]}`,
     `Student APS for this institution: ${course.studentAps ?? "not available"}`,

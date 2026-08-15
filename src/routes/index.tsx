@@ -44,7 +44,7 @@ export const Route = createFileRoute("/")({
 
 const previewCourses: Course[] = [
   {
-    institution: "Demo — Example University",
+    institution: "Example University",
     name: "BSc Computer Science",
     summary: "Example: you meet the published entry requirement. This is not a guarantee of admission.",
     aps: 42,
@@ -52,7 +52,7 @@ const previewCourses: Course[] = [
     status: "qualify",
   },
   {
-    institution: "Demo — Example University",
+    institution: "Example University",
     name: "BA Law",
     summary: "Example: you are below the published requirement. Explore options like a re-mark or extended programme.",
     aps: 34,
@@ -128,7 +128,7 @@ function Index() {
         <div className="mx-auto max-w-4xl text-center">
           <div className="rise mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary">
             <span className="size-2 animate-pulse rounded-full bg-primary" aria-hidden="true" />
-            Early Prototype
+            2026 Applications
           </div>
 
           <h1 className="rise font-display text-5xl font-semibold leading-[1.1] tracking-tight text-foreground md:text-7xl [animation-delay:100ms]">
@@ -257,12 +257,12 @@ function Index() {
         </div>
       </section>
 
-      {/* Demo preview */}
+      {/* Preview */}
       <section className="mx-auto max-w-7xl px-6 py-24">
         <div className="mb-12 flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div className="max-w-xl">
             <span className="mb-4 inline-block font-mono text-xs font-bold uppercase tracking-widest text-primary">
-              Demo preview
+              Preview
             </span>
             <h2 className="font-display text-3xl font-semibold leading-tight text-foreground">
               See how your results could look
@@ -271,7 +271,7 @@ function Index() {
               These are example results only. Real outcomes depend on your marks and the course requirements.
             </p>
           </div>
-          <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Demo / Example data</div>
+          <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Example data</div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
@@ -283,9 +283,9 @@ function Index() {
             <div className="mb-4 grid size-16 place-items-center rounded-full bg-card shadow-sm">
               <div className="size-8 rounded-lg border-2 border-dashed border-border" />
             </div>
-            <h3 className="mb-2 font-display text-xl font-semibold text-foreground">Your Dashboard</h3>
+            <h3 className="mb-2 font-display text-xl font-semibold text-foreground">Your profile</h3>
             <p className="px-4 text-sm text-muted-foreground">
-              Sign up to save your results and explore how EduStarter will work.
+              Sign up to save your results and explore how EduStarter works.
             </p>
             <Link
               to="/signup"
