@@ -108,7 +108,7 @@ const differentiators = [
   {
     icon: ShieldCheck,
     title: "Human-verified source data",
-    description: "University requirements are staged and reviewed before they reach your results dashboard.",
+    description: "University requirements are staged and reviewed before they reach your results.",
   },
 ];
 

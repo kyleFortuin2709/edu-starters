@@ -41,7 +41,6 @@ export function EligibilityCourseCard({
 
       <p className="mb-4 font-mono text-xs uppercase text-muted-foreground">
         {course.universityName ?? "Institution"}
-        {course.isDemoCourse ? " · Demo data" : ""}
       </p>
       <h3 className="mb-2 font-display text-2xl font-semibold group-hover:text-primary">
         {course.courseName}
