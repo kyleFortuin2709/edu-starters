@@ -133,14 +133,25 @@ function ResultsPage() {
   }, [user]);
 
   const grouped = useMemo(() => {
+    return groupSubjects(subjects);
+  }, [subjects]);
+
+  // Keep unsaved edits in the browser so switching tabs or pages never loses them.
+  useEffect(() => {
+    if (!user || loading) return;
+    if (saved) writeDraft(user.id, null);
+    else writeDraft(user.id, rows);
+  }, [user, loading, saved, rows]);
+
+  function groupSubjects(list: Subject[]) {
     const map = new Map<string, Subject[]>();
-    for (const s of subjects) {
+    for (const s of list) {
       const list = map.get(s.category) ?? [];
       list.push(s);
       map.set(s.category, list);
     }
     return [...map.entries()];
-  }, [subjects]);
+  }
 
   const subjectNameToId = useMemo(() => {
     const map = new Map<string, string>();
