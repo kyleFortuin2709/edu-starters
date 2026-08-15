@@ -55,7 +55,18 @@ export function CourseOverview({
         <span className="font-mono text-xs uppercase text-muted-foreground">AI overview</span>
         <h2 className="mt-3 font-display text-2xl font-semibold">What this course is about</h2>
         {loading ? (
-          <p className="mt-4 text-sm text-muted-foreground">Writing a plain-language summary…</p>
+          <div className="mt-4 max-w-3xl space-y-3">
+            {["100%", "96%", "88%", "70%"].map((w, i) => (
+              <div
+                key={w}
+                className="h-3.5 animate-pulse rounded-full bg-muted"
+                style={{ width: w, animationDelay: `${i * 120}ms` }}
+              />
+            ))}
+            <p className="pt-2 font-mono text-[0.65rem] uppercase text-muted-foreground">
+              Writing a plain-language summary…
+            </p>
+          </div>
         ) : error ? (
           <div className="mt-4">
             <FormMessage>{error}</FormMessage>
@@ -71,6 +82,31 @@ export function CourseOverview({
           </>
         )}
       </div>
+
+      {loading && (
+        <div className="mt-6 rounded-[2rem] border border-border bg-card p-8">
+          <span className="font-mono text-xs uppercase text-muted-foreground">Career ideas</span>
+          <h2 className="mt-3 font-display text-2xl font-semibold">Where this could lead</h2>
+          <ul className="mt-6 grid gap-4 sm:grid-cols-2">
+            {[0, 1, 2, 3].map((i) => (
+              <li key={i} className="rounded-2xl border border-border p-5">
+                <div
+                  className="h-2.5 w-8 animate-pulse rounded-full bg-muted"
+                  style={{ animationDelay: `${i * 120}ms` }}
+                />
+                <div
+                  className="mt-3 h-3.5 w-2/3 animate-pulse rounded-full bg-muted"
+                  style={{ animationDelay: `${i * 120 + 60}ms` }}
+                />
+                <div
+                  className="mt-2 h-3 w-full animate-pulse rounded-full bg-muted"
+                  style={{ animationDelay: `${i * 120 + 120}ms` }}
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {!loading && !error && careers.length > 0 && (
         <div className="mt-6 rounded-[2rem] border border-border bg-card p-8">
