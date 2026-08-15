@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { ActionButton } from "@/components/ActionButton";
 import { FormMessage } from "@/components/FormMessage";
@@ -6,6 +6,12 @@ import { RichText } from "@/components/RichText";
 import { askCourseAdvisor } from "@/lib/course-advisor.functions";
 import { STATUS_LABEL, describeCheck } from "@/lib/eligibility-format";
 import type { CourseEligibilityView } from "@/lib/eligibility-view";
+import { useAuth } from "@/lib/auth";
+import {
+  fetchConversation,
+  saveConversation,
+  type AdvisorTurn,
+} from "@/lib/advisor-conversations";
 
 const SUGGESTIONS = [
   "Why do I get this result?",
@@ -56,7 +62,7 @@ function buildContext(course: CourseEligibilityView, description: string | null)
   return lines.filter(Boolean).join("\n");
 }
 
-type Turn = { role: "user" | "assistant"; content: string };
+type Turn = AdvisorTurn;
 
 export function CourseAdvisor({
   course,
@@ -66,10 +72,29 @@ export function CourseAdvisor({
   description: string | null;
 }) {
   const ask = useServerFn(askCourseAdvisor);
+  const { user } = useAuth();
   const [turns, setTurns] = useState<Turn[]>([]);
   const [question, setQuestion] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    fetchConversation(user.id, course.courseId)
+      .then((stored) => {
+        if (active && stored.length) setTurns(stored);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [user, course.courseId]);
+
+  function persist(next: Turn[]) {
+    if (!user) return;
+    void saveConversation(user.id, course.courseId, next).catch(() => {});
+  }
 
   async function send(text: string) {
     const trimmed = text.trim();
@@ -84,7 +109,11 @@ export function CourseAdvisor({
         data: { question: trimmed, context: buildContext(course, description), history },
       });
       if (result.ok) {
-        setTurns((prev) => [...prev, { role: "assistant", content: result.answer }]);
+        setTurns((prev) => {
+          const next: Turn[] = [...prev, { role: "assistant" as const, content: result.answer }];
+          persist(next);
+          return next;
+        });
       } else {
         setError(result.error);
       }
