@@ -220,8 +220,19 @@ function InterestProfilesPage() {
         </ActionButton>
       </div>
 
-      {status ? <p className="mt-4 text-sm text-muted-foreground">{status}</p> : null}
+      {progress ? (
+        <GenerationProgress
+          total={progress.total}
+          processed={progress.processed}
+          currentBatch={progress.currentBatch}
+          totalBatches={progress.totalBatches}
+          label={progress.label}
+        />
+      ) : status ? (
+        <p className="mt-4 text-sm text-muted-foreground">{status}</p>
+      ) : null}
       {error ? <p className="mt-4 text-sm text-destructive">{error}</p> : null}
+
 
       {loading ? (
         <p className="mt-8 text-sm text-muted-foreground">Loading courses…</p>
