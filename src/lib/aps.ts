@@ -197,7 +197,7 @@ export function calculateAps(
   const selectedIds = new Set(selected.map((s) => s.subjectId));
   const subjects = scored.map((s) =>
     s.counted && !selectedIds.has(s.subjectId)
-      ? { ...s, points: 0, counted: false, reason: "Not among the best counting subjects" }
+      ? { ...s, points: 0, counted: false, reason: "Not counted in your best subjects" }
       : s,
   );
 
