@@ -390,10 +390,12 @@ function ProspectusDetailPage() {
 
       <ApsRuleReviewCard doc={doc} locked={!doc.university_id}>
         {doc.university_id ? (
-          <ApsCalculatorManager
+          <ApsCalculatorAiReviewCard
+            prospectusId={doc.id}
             universityId={doc.university_id}
-            variant="registration"
-            title="APS calculators for this institution"
+            showWhenEmpty
+            allowAdding
+            title="Detected APS rules"
           />
         ) : null}
       </ApsRuleReviewCard>
@@ -408,8 +410,6 @@ function ProspectusDetailPage() {
           )
         }
       />
-
-      <ApsCalculatorAiReviewCard prospectusId={doc.id} universityId={doc.university_id} />
 
       <div
         className={`mt-10 rounded-[2rem] border bg-card p-6 md:p-8 ${
