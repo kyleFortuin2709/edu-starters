@@ -148,6 +148,8 @@ export function ResultsDocumentUpload({
   const cameraInput = useRef<HTMLInputElement>(null);
   const cancelled = useRef(false);
   const lastNotifiedCount = useRef(0);
+  const running = useRef(false);
+  const [resumed, setResumed] = useState(false);
 
   useEffect(() => {
     // React Strict Mode runs effect setup → cleanup → setup in development.
@@ -202,23 +204,11 @@ export function ResultsDocumentUpload({
     if (cameraInput.current) cameraInput.current.value = "";
   }
 
-  async function handleSubmit() {
-    if (!file || busy) return;
-    cancelled.current = false;
-    setError("");
-    setSubjects(null);
-    setElapsed(0);
-    setFound(0);
-    setChecks(0);
+  async function pollDocument(documentId: string, startedAt: number) {
+    if (running.current) return;
+    running.current = true;
     try {
-      setPhase("uploading");
-      const path = await uploadResultsDocument(userId, file);
-      setPhase("starting");
-      const documentId = await startExtraction(userId, path);
       setPhase("processing");
-      lastNotifiedCount.current = 0;
-
-      const startedAt = Date.now();
       // eslint-disable-next-line no-constant-condition
       while (true) {
         await new Promise((resolve) => setTimeout(resolve, POLL_MS));
@@ -247,6 +237,7 @@ export function ResultsDocumentUpload({
           // student waiting for a separate document-status update after marks
           // have already been returned and prepopulated.
           setPhase("done");
+          writeJob(userId, null);
           return;
         }
 
@@ -271,13 +262,47 @@ export function ResultsDocumentUpload({
       }
       setSubjects(final);
       setPhase("done");
+      writeJob(userId, null);
     } catch (caught) {
       if (cancelled.current) return;
       setError(
         caught instanceof Error ? caught.message : "Something went wrong. Please try again.",
       );
       setPhase("error");
+      writeJob(userId, null);
+    } finally {
+      running.current = false;
     }
+  }
+
+  async function handleSubmit() {
+    if (!file || busy) return;
+    cancelled.current = false;
+    setError("");
+    setSubjects(null);
+    setElapsed(0);
+    setFound(0);
+    setChecks(0);
+    let documentId: string;
+    try {
+      setPhase("uploading");
+      const path = await uploadResultsDocument(userId, file);
+      setPhase("starting");
+      documentId = await startExtraction(userId, path);
+      lastNotifiedCount.current = 0;
+      writeJob(userId, {
+        documentId,
+        startedAt: Date.now(),
+        fileName: file.name,
+      });
+    } catch (caught) {
+      setError(
+        caught instanceof Error ? caught.message : "Something went wrong. Please try again.",
+      );
+      setPhase("error");
+      return;
+    }
+    await pollDocument(documentId, Date.now());
   }
 
   return (
