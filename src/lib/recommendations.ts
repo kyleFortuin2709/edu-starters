@@ -8,6 +8,8 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { RIASEC_META, type RiasecDimension } from "@/lib/career";
+import { topDimensions, type CourseRiasecProfile } from "@/lib/course-riasec";
 
 const db = supabase as unknown as SupabaseClient<any, "public", any>;
 
@@ -66,6 +68,43 @@ export function recommendationLabel(rec: CourseRecommendation): string | null {
 export function recommendationScoreText(rec: CourseRecommendation): string | null {
   if (!rec.available || rec.score == null) return null;
   return `${Math.round(rec.score)}% recommendation match`;
+}
+
+/** Visual tone for the match badge, keyed off the student-friendly label. */
+export function recommendationTone(label: string | null): string {
+  switch (label) {
+    case "Strong match":
+      return "border-primary/30 bg-primary/10 text-primary";
+    case "Good match":
+      return "border-accent/30 bg-accent/10 text-accent";
+    case "Moderate match":
+      return "border-warning/30 bg-warning/10 text-warning";
+    default:
+      return "border-border bg-muted/40 text-muted-foreground";
+  }
+}
+
+/**
+ * Plain-English reason for the badge. Purely descriptive: it names the interest
+ * dimensions the student and the course have in common. It never computes or
+ * adjusts the backend's recommendation score.
+ */
+export function recommendationReason(
+  studentScores: Record<RiasecDimension, number> | null | undefined,
+  courseProfile: CourseRiasecProfile | null | undefined,
+): string | null {
+  if (!studentScores || !courseProfile) return null;
+  const studentTop = topDimensions(studentScores, 3);
+  const courseTop = topDimensions(courseProfile.scores, 3);
+  const shared = courseTop.filter((d) => studentTop.includes(d));
+  const names = (shared.length > 0 ? shared : courseTop.slice(0, 2)).map(
+    (d) => RIASEC_META[d].name,
+  );
+  if (names.length === 0) return null;
+  const joined = names.length === 1 ? names[0] : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
+  return shared.length > 0
+    ? `Fits your ${joined} interests`
+    : `Mostly ${joined} work`;
 }
 
 /**

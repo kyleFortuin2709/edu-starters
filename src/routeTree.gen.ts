@@ -22,6 +22,7 @@ import { Route as AuthenticatedProfileSetupRouteImport } from './routes/_authent
 import { Route as AuthenticatedResultsRouteImport } from './routes/_authenticated/results'
 import { Route as AuthenticatedSavedRouteImport } from './routes/_authenticated/saved'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as AuthenticatedAdminInterestProfilesRouteImport } from './routes/_authenticated/admin/interest-profiles'
 import { Route as AuthenticatedAdminUniversitiesRouteImport } from './routes/_authenticated/admin/universities'
 import { Route as AuthenticatedMatchesIndexRouteImport } from './routes/_authenticated/matches/index'
 import { Route as AuthenticatedMatchesCourseIdRouteImport } from './routes/_authenticated/matches/$courseId'
@@ -96,6 +97,12 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminInterestProfilesRoute =
+  AuthenticatedAdminInterestProfilesRouteImport.update({
+    id: '/interest-profiles',
+    path: '/interest-profiles',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminUniversitiesRoute =
   AuthenticatedAdminUniversitiesRouteImport.update({
     id: '/universities',
@@ -157,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/profile-setup': typeof AuthenticatedProfileSetupRoute
   '/results': typeof AuthenticatedResultsRoute
   '/saved': typeof AuthenticatedSavedRoute
+  '/admin/interest-profiles': typeof AuthenticatedAdminInterestProfilesRoute
   '/admin/universities': typeof AuthenticatedAdminUniversitiesRoute
   '/matches/$courseId': typeof AuthenticatedMatchesCourseIdRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
@@ -178,6 +186,7 @@ export interface FileRoutesByTo {
   '/profile-setup': typeof AuthenticatedProfileSetupRoute
   '/results': typeof AuthenticatedResultsRoute
   '/saved': typeof AuthenticatedSavedRoute
+  '/admin/interest-profiles': typeof AuthenticatedAdminInterestProfilesRoute
   '/admin/universities': typeof AuthenticatedAdminUniversitiesRoute
   '/matches/$courseId': typeof AuthenticatedMatchesCourseIdRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
@@ -202,6 +211,7 @@ export interface FileRoutesById {
   '/_authenticated/profile-setup': typeof AuthenticatedProfileSetupRoute
   '/_authenticated/results': typeof AuthenticatedResultsRoute
   '/_authenticated/saved': typeof AuthenticatedSavedRoute
+  '/_authenticated/admin/interest-profiles': typeof AuthenticatedAdminInterestProfilesRoute
   '/_authenticated/admin/universities': typeof AuthenticatedAdminUniversitiesRoute
   '/_authenticated/matches/$courseId': typeof AuthenticatedMatchesCourseIdRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
@@ -226,6 +236,7 @@ export interface FileRouteTypes {
     | '/profile-setup'
     | '/results'
     | '/saved'
+    | '/admin/interest-profiles'
     | '/admin/universities'
     | '/matches/$courseId'
     | '/admin/'
@@ -247,6 +258,7 @@ export interface FileRouteTypes {
     | '/profile-setup'
     | '/results'
     | '/saved'
+    | '/admin/interest-profiles'
     | '/admin/universities'
     | '/matches/$courseId'
     | '/admin'
@@ -270,6 +282,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile-setup'
     | '/_authenticated/results'
     | '/_authenticated/saved'
+    | '/_authenticated/admin/interest-profiles'
     | '/_authenticated/admin/universities'
     | '/_authenticated/matches/$courseId'
     | '/_authenticated/admin/'
@@ -383,6 +396,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/interest-profiles': {
+      id: '/_authenticated/admin/interest-profiles'
+      path: '/interest-profiles'
+      fullPath: '/admin/interest-profiles'
+      preLoaderRoute: typeof AuthenticatedAdminInterestProfilesRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/universities': {
       id: '/_authenticated/admin/universities'
       path: '/universities'
@@ -443,6 +463,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteRouteChildren {
+  AuthenticatedAdminInterestProfilesRoute: typeof AuthenticatedAdminInterestProfilesRoute
   AuthenticatedAdminUniversitiesRoute: typeof AuthenticatedAdminUniversitiesRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminCoursesCourseIdRoute: typeof AuthenticatedAdminCoursesCourseIdRoute
@@ -454,6 +475,8 @@ interface AuthenticatedAdminRouteRouteChildren {
 
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
   {
+    AuthenticatedAdminInterestProfilesRoute:
+      AuthenticatedAdminInterestProfilesRoute,
     AuthenticatedAdminUniversitiesRoute: AuthenticatedAdminUniversitiesRoute,
     AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
     AuthenticatedAdminCoursesCourseIdRoute:

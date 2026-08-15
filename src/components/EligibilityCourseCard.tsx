@@ -7,22 +7,28 @@ import type { CourseEligibilityView } from "@/lib/eligibility-view";
 import {
   recommendationLabel,
   recommendationScoreText,
+  recommendationTone,
   type CourseRecommendation,
 } from "@/lib/recommendations";
 
 export function EligibilityCourseCard({
   course,
   recommendation,
+  reason,
+  isTopPick,
   className,
 }: {
   course: CourseEligibilityView;
   recommendation?: CourseRecommendation | undefined;
+  reason?: string | null;
+  isTopPick?: boolean;
   className?: string;
 }) {
   const tone = STATUS_TONE[course.status];
   const gap = summarizeGap(course);
   const matchLabel = recommendation ? recommendationLabel(recommendation) : null;
   const matchScore = recommendation ? recommendationScoreText(recommendation) : null;
+  const matchTone = recommendationTone(matchLabel);
 
   return (
     <Link
@@ -31,9 +37,15 @@ export function EligibilityCourseCard({
       className={cn(
         "group relative block rounded-[2rem] border bg-card p-8 transition-all hover:shadow-lg",
         tone.border,
+        isTopPick && matchLabel ? "ring-2 ring-primary/40 ring-offset-2 ring-offset-background" : null,
         className,
       )}
     >
+      {isTopPick && matchLabel ? (
+        <span className="absolute -top-3 left-8 rounded-full border border-primary/30 bg-primary px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-wide text-primary-foreground">
+          Top recommendation
+        </span>
+      ) : null}
       <div className="mb-5 flex items-start justify-between gap-4">
         <EligibilityStatusBadge status={course.status} />
         <SaveCourseButton courseId={course.courseId} />
@@ -51,11 +63,19 @@ export function EligibilityCourseCard({
       </p>
 
       {matchLabel ? (
-        <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-border bg-muted/40 px-3 py-1 font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
-          <span aria-hidden>★</span>
-          <span className="font-bold text-foreground">{matchLabel}</span>
-          {matchScore ? <span>· {matchScore}</span> : null}
-        </p>
+        <div className="mt-4">
+          <p
+            className={cn(
+              "inline-flex items-center gap-2 rounded-full border px-3 py-1 font-mono text-[11px] uppercase tracking-wide",
+              matchTone,
+            )}
+          >
+            <span aria-hidden>★</span>
+            <span className="font-bold">{matchLabel}</span>
+            {matchScore ? <span className="opacity-80">· {matchScore}</span> : null}
+          </p>
+          {reason ? <p className="mt-2 text-sm text-muted-foreground">{reason}</p> : null}
+        </div>
       ) : null}
 
       <dl className="mt-6 grid grid-cols-2 gap-4 border-t border-border pt-6 font-mono text-xs">

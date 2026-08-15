@@ -106,6 +106,16 @@ function AdminOverviewPage() {
                 review. Staged data is kept completely separate from the live catalogue.
               </p>
             </Link>
+            <Link
+              to="/admin/interest-profiles"
+              className="rounded-[2rem] border border-border bg-card p-8 transition-colors hover:bg-secondary md:col-span-2"
+            >
+              <h2 className="font-display text-2xl font-semibold">Course interest profiles</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Generate and review the interest profile behind each course. These power the match
+                labels and ordering students see, and never change eligibility or APS.
+              </p>
+            </Link>
           </div>
         </>
       )}

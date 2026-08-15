@@ -17,8 +17,11 @@ import {
 import {
   fetchCourseRecommendations,
   sortByRecommendation,
+  recommendationReason,
   type RecommendationMap,
 } from "@/lib/recommendations";
+import { fetchCourseRiasecProfiles, type CourseRiasecProfile } from "@/lib/course-riasec";
+import { fetchMyCareerProfile, type CareerProfileResult } from "@/lib/career";
 
 export const Route = createFileRoute("/_authenticated/matches/")({
   head: () => ({
@@ -76,6 +79,8 @@ function MatchesPage() {
   // Recommendations load after eligibility and never block or change it.
   const [recommendations, setRecommendations] = useState<RecommendationMap | null>(null);
   const [recommendationsAvailable, setRecommendationsAvailable] = useState(false);
+  const [courseProfiles, setCourseProfiles] = useState<Map<string, CourseRiasecProfile>>(new Map());
+  const [careerProfile, setCareerProfile] = useState<CareerProfileResult | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -100,15 +105,19 @@ function MatchesPage() {
   useEffect(() => {
     if (!user || courses.length === 0) return;
     let active = true;
-    fetchCourseRecommendations(
-      user.id,
-      courses.map((c) => c.courseId),
-    )
-      .then((map) => {
+    const ids = courses.map((c) => c.courseId);
+    Promise.all([
+      fetchCourseRecommendations(user.id, ids),
+      fetchCourseRiasecProfiles(ids).catch(() => new Map<string, CourseRiasecProfile>()),
+      fetchMyCareerProfile(user.id).catch(() => null),
+    ])
+      .then(([map, profiles, career]) => {
         if (!active) return;
         const anyAvailable = [...map.values()].some((r) => r.available);
         setRecommendations(anyAvailable ? map : null);
         setRecommendationsAvailable(anyAvailable);
+        setCourseProfiles(profiles);
+        setCareerProfile(career);
       })
       .catch((err) => {
         console.error("[recommendations] failed to load", err);
@@ -137,6 +146,11 @@ function MatchesPage() {
   );
   const countFor = (status: EligibilityStatus) =>
     filtered.filter((c) => c.status === status).length;
+
+  const reasonFor = (courseId: string) =>
+    recommendationReason(careerProfile?.percentages, courseProfiles.get(courseId));
+  const topPickId =
+    recommendationsAvailable && byStatus.length > 1 ? byStatus[0]?.courseId ?? null : null;
 
   const setFilter = (key: keyof EligibilityFilters) => (value: string) =>
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -279,6 +293,8 @@ function MatchesPage() {
                     key={course.courseId}
                     course={course}
                     recommendation={recommendations?.get(course.courseId)}
+                    reason={reasonFor(course.courseId)}
+                    isTopPick={course.courseId === topPickId}
                   />
                 ))}
               </div>
@@ -304,6 +320,7 @@ function MatchesPage() {
                       key={course.courseId}
                       course={course}
                       recommendation={recommendations?.get(course.courseId)}
+                      reason={reasonFor(course.courseId)}
                     />
                   ))}
                 </div>
