@@ -268,13 +268,6 @@ function CourseDetailPage() {
         )}
 
         <CourseAdvisor course={eligibility} description={course?.description ?? null} />
-
-        <CourseOverview
-          courseName={eligibility.courseName}
-          qualificationName={eligibility.qualificationName ?? null}
-          facultyName={eligibility.facultyName ?? null}
-          description={course?.description ?? null}
-        />
       </section>
     </SiteLayout>
   );
