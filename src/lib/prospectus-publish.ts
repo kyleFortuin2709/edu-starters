@@ -267,7 +267,7 @@ export async function publishStagedCourse(s: StagedCourse): Promise<PublishResul
     application_url: s.application_url,
     is_active: true,
     is_demo: false,
-    publication_status: "published",
+    publication_status: "published" as const,
     metadata: {
       source: "prospectus_review",
       prospectus_id: s.prospectus_id,
