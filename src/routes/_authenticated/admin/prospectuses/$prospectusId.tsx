@@ -387,6 +387,17 @@ function ProspectusDetailPage() {
         }}
       />
 
+      <FacultyReviewCard
+        prospectusId={doc.id}
+        universityId={doc.university_id}
+        staged={staged}
+        onStagedUpdated={(ids, facultyName) =>
+          setStaged((prev) =>
+            prev.map((s) => (ids.includes(s.id) ? { ...s, faculty_name: facultyName } : s)),
+          )
+        }
+      />
+
       <ApsRuleReviewCard doc={doc} locked={!doc.university_id}>
         {doc.university_id ? (
           <ApsCalculatorAiReviewCard
@@ -398,17 +409,6 @@ function ProspectusDetailPage() {
           />
         ) : null}
       </ApsRuleReviewCard>
-
-      <FacultyReviewCard
-        prospectusId={doc.id}
-        universityId={doc.university_id}
-        staged={staged}
-        onStagedUpdated={(ids, facultyName) =>
-          setStaged((prev) =>
-            prev.map((s) => (ids.includes(s.id) ? { ...s, faculty_name: facultyName } : s)),
-          )
-        }
-      />
 
       <div
         className={`mt-10 rounded-[2rem] border bg-card p-6 md:p-8 ${
