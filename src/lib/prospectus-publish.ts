@@ -255,33 +255,62 @@ export async function publishStagedCourse(s: StagedCourse): Promise<PublishResul
       `${s.name}: no duration was stated, so a typical ${duration.years}-year duration was used for this qualification type.`,
     );
 
-  const { data: course, error: courseError } = await supabase
-    .from("courses")
-    .insert({
-      university_id: s.university_id,
-      faculty_id: facultyId,
-      qualification_type_id: qualificationTypeId,
-      name: s.name,
-      code: s.code,
-      description: s.description,
-      duration_years: duration?.years ?? null,
-      aps_requirement: s.aps_requirement,
-      application_url: s.application_url,
-      is_active: true,
-      is_demo: false,
-      publication_status: "published",
-      metadata: {
-        source: "prospectus_review",
-        prospectus_id: s.prospectus_id,
-        staged_course_id: s.id,
-        source_page: s.source_page,
-        requirements_text: s.requirements_text,
-        duration_source: duration?.source ?? null,
-      },
-    })
-    .select("id")
-    .single();
-  if (courseError) throw courseError;
+  const courseFields = {
+    university_id: s.university_id,
+    faculty_id: facultyId,
+    qualification_type_id: qualificationTypeId,
+    name: s.name,
+    code: s.code,
+    description: s.description,
+    duration_years: duration?.years ?? null,
+    aps_requirement: s.aps_requirement,
+    application_url: s.application_url,
+    is_active: true,
+    is_demo: false,
+    publication_status: "published" as const,
+    metadata: {
+      source: "prospectus_review",
+      prospectus_id: s.prospectus_id,
+      staged_course_id: s.id,
+      source_page: s.source_page,
+      requirements_text: s.requirements_text,
+      duration_source: duration?.source ?? null,
+    },
+  };
+
+  // Publishing must be repeatable: a course with the same code (or, failing
+  // that, the same name) at this university is updated instead of inserted,
+  // otherwise a retry hits a duplicate-key conflict (409).
+  let existingCourseId = s.published_course_id ?? null;
+  if (!existingCourseId) {
+    let lookup = supabase.from("courses").select("id").eq("university_id", s.university_id);
+    lookup = s.code ? lookup.eq("code", s.code) : lookup.ilike("name", s.name);
+    const { data: found } = await lookup.limit(1).maybeSingle();
+    existingCourseId = found?.id ?? null;
+  }
+
+  let course: { id: string };
+  if (existingCourseId) {
+    const { data: updated, error: updateError } = await supabase
+      .from("courses")
+      .update(courseFields)
+      .eq("id", existingCourseId)
+      .select("id")
+      .single();
+    if (updateError) throw updateError;
+    course = updated;
+    warnings.push(`${s.name} already existed in the catalogue, so it was updated instead of added.`);
+    // Remove the previous requirement sets so rules are not duplicated.
+    await supabase.from("course_requirement_sets").delete().eq("course_id", course.id);
+  } else {
+    const { data: inserted, error: courseError } = await supabase
+      .from("courses")
+      .insert(courseFields)
+      .select("id")
+      .single();
+    if (courseError) throw courseError;
+    course = inserted;
+  }
 
   const { data: set, error: setError } = await supabase
     .from("course_requirement_sets")
