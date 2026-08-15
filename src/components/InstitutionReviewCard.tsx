@@ -12,6 +12,8 @@ import {
 import { proposedInstitution, type ProspectusDocument } from "@/lib/prospectus";
 import { TextField } from "@/components/TextField";
 import { SelectField } from "@/components/SelectField";
+import { useServerFn } from "@tanstack/react-start";
+import { ensureAllProvinces } from "@/lib/provinces.functions";
 import { PublicationPill, ActivePill } from "@/components/StatusPill";
 
 type Province = { id: string; name: string; code: string };
@@ -51,15 +53,21 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [collapsed, setCollapsed] = useState(true);
+  const runEnsureAllProvinces = useServerFn(ensureAllProvinces);
 
   useEffect(() => {
     let active = true;
-    Promise.all([
-      fetchProvinces(),
-      fetchAdminUniversities(),
-      doc.university_id ? fetchInstitution(doc.university_id) : Promise.resolve(null),
-    ])
-      .then(([p, u, inst]) => {
+    async function load() {
+      try {
+        // Make sure the backend has all nine provinces before rendering the list.
+        try {
+          await runEnsureAllProvinces();
+        } catch {
+          // Continue with the fetch even if seeding fails; an empty dropdown is
+          // better than a broken page.
+        }
+        const [p, u] = await Promise.all([fetchProvinces(), fetchAdminUniversities()]);
+        const inst = doc.university_id ? await fetchInstitution(doc.university_id) : null;
         if (!active) return;
         setProvinces(p as Province[]);
         setUniversities(u);
@@ -75,10 +83,15 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
             description: inst.description ?? "",
           });
         } else {
-          const guessed = p.find(
+          const guessed = (p as Province[]).find(
             (province) =>
               proposal?.province &&
-              province.name.toLowerCase().includes(proposal.province.toLowerCase().replace(/province/i, "").trim()),
+              province.name.toLowerCase().includes(
+                proposal.province
+                  .toLowerCase()
+                  .replace(/province/i, "")
+                  .trim(),
+              ),
           );
           setForm({
             name: detectedName,
@@ -87,13 +100,16 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
             province_id: guessed?.id ?? "",
             website_url: proposal?.website_url ?? "",
             application_url: proposal?.application_url ?? "",
-            description: proposal?.institution_type ? `Institution type: ${proposal.institution_type}` : "",
+            description: proposal?.institution_type
+              ? `Institution type: ${proposal.institution_type}`
+              : "",
           });
         }
-      })
-      .catch(() => {
+      } catch {
         if (active) setError("We couldn't load the institution list. Please refresh the page.");
-      });
+      }
+    }
+    load();
     return () => {
       active = false;
     };
@@ -129,7 +145,10 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
       });
       const updated = await linkProspectusInstitution(doc.id, created.id);
       setLinked(created);
-      setUniversities((prev) => [...prev, { ...(created as unknown as AdminUniversity), provinces: null }]);
+      setUniversities((prev) => [
+        ...prev,
+        { ...(created as unknown as AdminUniversity), provinces: null },
+      ]);
       setMessage(
         `${created.name} registered as a draft institution and linked to this prospectus` +
           (updated > 0 ? `, plus ${updated} staged course${updated === 1 ? "" : "s"}.` : "."),
@@ -164,7 +183,9 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
         });
         setMessage(
           `Linked to ${inst.name}` +
-            (updated > 0 ? `, and ${updated} staged course${updated === 1 ? "" : "s"} updated.` : "."),
+            (updated > 0
+              ? `, and ${updated} staged course${updated === 1 ? "" : "s"} updated.`
+              : "."),
         );
         onInstitutionLinked(inst, updated);
       }
@@ -191,7 +212,12 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
         application_url: form.application_url || null,
         description: form.description || null,
       });
-      setLinked({ ...linked, ...form, short_name: form.short_name || null, city: form.city || null });
+      setLinked({
+        ...linked,
+        ...form,
+        short_name: form.short_name || null,
+        city: form.city || null,
+      });
       setMessage("Institution details saved.");
     } catch {
       setError("Those institution details couldn't be saved. Please try again.");
@@ -324,7 +350,8 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
 
           {!linked && detectedName && (
             <p className="mt-4 rounded-2xl border border-border bg-background p-4 text-sm text-muted-foreground">
-              Detected in the document: <span className="font-semibold text-foreground">{detectedName}</span>
+              Detected in the document:{" "}
+              <span className="font-semibold text-foreground">{detectedName}</span>
               {proposal?.institution_type ? ` · ${proposal.institution_type}` : ""}
               {proposal?.city ? ` · ${proposal.city}` : ""}
               {proposal?.province ? ` · ${proposal.province}` : ""}
@@ -355,7 +382,9 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
                   onClick={togglePublication}
                   className="rounded-full border border-border px-5 py-2.5 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
                 >
-                  {linked.publication_status === "published" ? "Move back to draft" : "Publish institution"}
+                  {linked.publication_status === "published"
+                    ? "Move back to draft"
+                    : "Publish institution"}
                 </button>
               </div>
             </form>
@@ -389,8 +418,8 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
                     Register institution & link
                   </button>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    New institutions are created as drafts, so students only see them once you publish
-                    them.
+                    New institutions are created as drafts, so students only see them once you
+                    publish them.
                   </p>
                 </form>
               ) : (
