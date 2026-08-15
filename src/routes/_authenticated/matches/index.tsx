@@ -258,7 +258,11 @@ function MatchesPage() {
             {byStatus.length > 0 ? (
               <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                 {byStatus.map((course) => (
-                  <EligibilityCourseCard key={course.courseId} course={course} />
+                  <EligibilityCourseCard
+                    key={course.courseId}
+                    course={course}
+                    recommendation={recommendations?.get(course.courseId)}
+                  />
                 ))}
               </div>
             ) : (
@@ -279,7 +283,11 @@ function MatchesPage() {
                 </p>
                 <div className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                   {needsInfo.map((course) => (
-                    <EligibilityCourseCard key={course.courseId} course={course} />
+                    <EligibilityCourseCard
+                      key={course.courseId}
+                      course={course}
+                      recommendation={recommendations?.get(course.courseId)}
+                    />
                   ))}
                 </div>
               </div>
