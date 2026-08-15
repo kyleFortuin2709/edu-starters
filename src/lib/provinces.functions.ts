@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/lib/supabase-auth.middleware";
 import { getSupabaseAdmin } from "@/lib/supabase-admin.server";
 
 const ALL_SA_PROVINCES = [
