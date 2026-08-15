@@ -171,6 +171,20 @@ export function ResultsDocumentUpload({
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
+  // Resume a reading job that was started before the student navigated away.
+  useEffect(() => {
+    const job = readJob(userId);
+    if (!job) return;
+    if (Date.now() - job.startedAt > POLL_TIMEOUT_MS) {
+      writeJob(userId, null);
+      return;
+    }
+    setResumed(true);
+    setElapsed((Date.now() - job.startedAt) / 1000);
+    void pollDocument(job.documentId, job.startedAt);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
   const busy = phase === "uploading" || phase === "starting" || phase === "processing";
 
   useEffect(() => {
