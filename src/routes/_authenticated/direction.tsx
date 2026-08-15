@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Sparkles } from "lucide-react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { ActionButton } from "@/components/ActionButton";
 import { useAuth } from "@/lib/auth";
@@ -47,6 +47,7 @@ function DirectionPage() {
   const [error, setError] = useState("");
   const [result, setResult] = useState<CareerProfileResult | null>(null);
   const [showQuestions, setShowQuestions] = useState(false);
+  const [savedNotice, setSavedNotice] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -84,12 +85,36 @@ function DirectionPage() {
     setError("");
     try {
       await saveCareerResponse({ profileId: user.id, questionId: current.id, optionId });
+      setSavedNotice(`Answer to question ${index + 1} saved`);
     } catch (err: any) {
       setError(err?.message ?? "We couldn't save that answer.");
       return;
     }
     if (!isLast) setIndex((i) => i + 1);
   }
+
+  /** Saves partial progress: unanswered questions simply count as 0 in the profile. */
+  async function saveProgress() {
+    if (!user) return;
+    setSaving(true);
+    setError("");
+    try {
+      await submitCareerQuestionnaire(user.id);
+      setSavedNotice(
+        `Progress saved — ${answeredCount} of ${questions.length} answered. Unanswered questions count as 0 and your course matches are updated.`,
+      );
+    } catch (err: any) {
+      setError(err?.message ?? "We couldn't save your progress.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!savedNotice) return;
+    const timer = setTimeout(() => setSavedNotice(""), 4000);
+    return () => clearTimeout(timer);
+  }, [savedNotice]);
 
   async function finish() {
     if (!user) return;
@@ -197,6 +222,15 @@ function DirectionPage() {
 
         {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
 
+        {savedNotice && !error && (
+          <p
+            role="status"
+            className="mt-4 flex items-center gap-2 rounded-xl border border-success/30 bg-success/10 px-4 py-3 text-sm font-medium text-foreground"
+          >
+            <Check className="size-4 text-success" /> {savedNotice}
+          </p>
+        )}
+
         <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
           <ActionButton
             variant="outline"
@@ -208,20 +242,27 @@ function DirectionPage() {
 
           <div className="flex items-center gap-3">
             {!isLast && (
-              <ActionButton
-                variant="outline"
-                onClick={() => setIndex((i) => Math.min(questions.length - 1, i + 1))}
-              >
-                Next <ArrowRight className="ml-2 size-4" />
+              <>
+                <ActionButton
+                  variant="outline"
+                  onClick={() => setIndex((i) => Math.min(questions.length - 1, i + 1))}
+                >
+                  Next <ArrowRight className="ml-2 size-4" />
+                </ActionButton>
+                <ActionButton
+                  onClick={saveProgress}
+                  disabled={saving || answeredCount === 0}
+                  title={answeredCount === 0 ? "Answer at least one question first" : undefined}
+                >
+                  {saving ? "Saving…" : "Save my answers"}
+                </ActionButton>
+              </>
+            )}
+            {isLast && (
+              <ActionButton onClick={finish} disabled={saving || answeredCount === 0}>
+                {saving ? "Working it out…" : "See my profile"}
               </ActionButton>
             )}
-            <ActionButton
-              onClick={finish}
-              disabled={saving || answeredCount === 0}
-              title={answeredCount === 0 ? "Answer at least one question first" : undefined}
-            >
-              {saving ? "Working it out…" : "See my profile"}
-            </ActionButton>
           </div>
         </div>
 
