@@ -65,8 +65,8 @@ function AdminUniversitiesPage() {
         Universities & faculties
       </h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
-        Read-only view of every institution, including records that are still drafts and therefore
-        hidden from students.
+        Every institution, including drafts hidden from students. You can also change which APS
+        calculation each university uses.
       </p>
 
       {loading ? (
