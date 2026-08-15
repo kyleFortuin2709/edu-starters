@@ -113,15 +113,32 @@ export function CourseOverview({
           <span className="font-mono text-xs uppercase text-muted-foreground">Career ideas</span>
           <h2 className="mt-3 font-display text-2xl font-semibold">Where this could lead</h2>
           <ul className="mt-6 grid gap-4 sm:grid-cols-2">
-            {careers.map((career, index) => (
-              <li key={career.title} className="rounded-2xl border border-border p-5">
-                <span className="font-mono text-xs text-muted-foreground">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <h3 className="mt-2 text-sm font-semibold">{career.title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{career.description}</p>
-              </li>
-            ))}
+            {careers.map((career, index) => {
+              const colorClasses = [
+                "border-l-primary",
+                "border-l-accent",
+                "border-l-chart-2",
+                "border-l-chart-3",
+              ];
+              const bgClasses = [
+                "bg-primary/[0.04]",
+                "bg-accent/[0.04]",
+                "bg-chart-2/[0.06]",
+                "bg-chart-3/[0.06]",
+              ];
+              return (
+                <li
+                  key={career.title}
+                  className={`rounded-2xl border border-border border-l-4 ${colorClasses[index % colorClasses.length]} ${bgClasses[index % bgClasses.length]} p-5 transition-colors hover:bg-muted/50`}
+                >
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <h3 className="mt-2 text-sm font-semibold">{career.title}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{career.description}</p>
+                </li>
+              );
+            })}
           </ul>
           <p className="mt-5 font-mono text-[0.65rem] uppercase text-muted-foreground">
             Examples only · not a guarantee of employment
