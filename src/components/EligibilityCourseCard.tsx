@@ -4,16 +4,25 @@ import { EligibilityStatusBadge } from "@/components/EligibilityStatusBadge";
 import { SaveCourseButton } from "@/components/SaveCourseButton";
 import { STATUS_TONE, summarizeGap } from "@/lib/eligibility-format";
 import type { CourseEligibilityView } from "@/lib/eligibility-view";
+import {
+  recommendationLabel,
+  recommendationScoreText,
+  type CourseRecommendation,
+} from "@/lib/recommendations";
 
 export function EligibilityCourseCard({
   course,
+  recommendation,
   className,
 }: {
   course: CourseEligibilityView;
+  recommendation?: CourseRecommendation | undefined;
   className?: string;
 }) {
   const tone = STATUS_TONE[course.status];
   const gap = summarizeGap(course);
+  const matchLabel = recommendation ? recommendationLabel(recommendation) : null;
+  const matchScore = recommendation ? recommendationScoreText(recommendation) : null;
 
   return (
     <Link
@@ -41,6 +50,14 @@ export function EligibilityCourseCard({
         {[course.facultyName, course.provinceName].filter(Boolean).join(" · ") ||
           "Faculty not listed"}
       </p>
+
+      {matchLabel ? (
+        <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-border bg-muted/40 px-3 py-1 font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
+          <span aria-hidden>★</span>
+          <span className="font-bold text-foreground">{matchLabel}</span>
+          {matchScore ? <span>· {matchScore}</span> : null}
+        </p>
+      ) : null}
 
       <dl className="mt-6 grid grid-cols-2 gap-4 border-t border-border pt-6 font-mono text-xs">
         <div>
