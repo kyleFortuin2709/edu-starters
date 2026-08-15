@@ -8,6 +8,7 @@ import {
 } from "@/lib/admin";
 import { ActivePill, PublicationPill, StatusPill } from "@/components/StatusPill";
 import { UniversityApsRuleCard } from "@/components/UniversityApsRuleCard";
+import { ApsCalculatorManager } from "@/components/ApsCalculatorManager";
 import { fetchApsRules, type ApsCalculationRule } from "@/lib/aps";
 
 export const Route = createFileRoute("/_authenticated/admin/universities")({
@@ -129,6 +130,8 @@ function AdminUniversitiesPage() {
                   rules={rules}
                   onChanged={handleRuleChanged}
                 />
+
+                <ApsCalculatorManager universityId={uni.id} />
               </article>
             );
           })}
