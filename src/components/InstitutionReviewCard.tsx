@@ -57,15 +57,32 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
 
   useEffect(() => {
     let active = true;
-    Promise.all([
-      fetchProvinces(),
-      fetchAdminUniversities(),
-      doc.university_id ? fetchInstitution(doc.university_id) : Promise.resolve(null),
-    ])
-      .then(([p, u, inst]) => {
+    // Make sure the backend has all nine provinces before rendering the list.
+    runEnsureAllProvinces()
+      .then(() => fetchProvinces())
+      .then((p) => {
+        if (!active) return;
+        return p;
+      })
+      .catch(() => {
+        // Continue with the fetch even if seeding fails; an empty dropdown is
+        // better than a broken page.
+        return fetchProvinces();
+      })
+      .then((p) => {
+        if (!active) return;
+        return fetchAdminUniversities().then((u) => {
+          return [p, u] as const;
+        });
+      })
+      .then(([p, u]) => {
         if (!active) return;
         setProvinces(p as Province[]);
         setUniversities(u);
+        return doc.university_id ? fetchInstitution(doc.university_id) : Promise.resolve(null);
+      })
+      .then((inst) => {
+        if (!active) return;
         setLinked(inst);
         if (inst) {
           setForm({
@@ -78,7 +95,7 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
             description: inst.description ?? "",
           });
         } else {
-          const guessed = p.find(
+          const guessed = provinces.find(
             (province) =>
               proposal?.province &&
               province.name.toLowerCase().includes(proposal.province.toLowerCase().replace(/province/i, "").trim()),
