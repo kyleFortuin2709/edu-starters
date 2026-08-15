@@ -133,7 +133,7 @@ function AdminCoursesPage() {
                   <h2 className="font-display text-xl font-semibold">{course.name}</h2>
                   <PublicationPill status={course.publication_status} />
                   <ActivePill active={course.is_active} />
-                  {course.is_demo && <StatusPill tone="demo">Demo data</StatusPill>}
+                  {course.is_demo && <StatusPill tone="demo">Unverified data</StatusPill>}
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {[
