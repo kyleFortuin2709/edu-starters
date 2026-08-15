@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ActionButton } from "@/components/ActionButton";
 import { TextField } from "@/components/TextField";
 import { FormMessage } from "@/components/FormMessage";
@@ -19,6 +19,16 @@ export function ToleranceSettingsCard({
   const [subject, setSubject] = useState(String(initial.subjectPercentageTolerance));
   const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [error, setError] = useState<string | null>(null);
+
+  // The profile loads asynchronously, so sync the inputs once it arrives —
+  // otherwise the card shows (and saves) the defaults instead of stored values.
+  useEffect(() => {
+    if (!profile) return;
+    const current = toleranceSettings(profile);
+    setAps(String(current.apsTolerance));
+    setSubject(String(current.subjectPercentageTolerance));
+    setStatus("idle");
+  }, [profile?.id, profile?.aps_tolerance, profile?.subject_percentage_tolerance]);
 
   async function handleSave(event: React.FormEvent) {
     event.preventDefault();
