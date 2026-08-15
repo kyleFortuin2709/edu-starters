@@ -52,9 +52,18 @@ export function summarizeGap(course: CourseEligibility): string | null {
   if (course.status === "YOU_QUALIFY") return null;
   const outstanding = outstandingChecks(course);
   if (outstanding.length === 0) {
-    return course.status === "MORE_INFORMATION_REQUIRED"
-      ? "Add your NSC results to see how you compare."
-      : null;
+    if (course.status !== "MORE_INFORMATION_REQUIRED") return null;
+    const captured = course.bestSet?.checks ?? [];
+    if (captured.length > 0) {
+      const first = captured[0]!.description;
+      return captured.length > 1
+        ? `Requirements as captured: ${first} (+${captured.length - 1} more)`
+        : `Requirement as captured: ${first}`;
+    }
+    if (course.studentAps == null) {
+      return "Add your NSC results to see how you compare.";
+    }
+    return "No entry requirements have been captured for this course yet.";
   }
   const first = describeCheck(outstanding[0]!);
   return outstanding.length > 1 ? `${first} (+${outstanding.length - 1} more)` : first;
