@@ -16,6 +16,7 @@ export function SiteHeader() {
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
   const [open, setOpen] = useState(false);
+  const marketingLinks = user ? [] : navLinks;
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
@@ -23,7 +24,7 @@ export function SiteHeader() {
         <Logo />
 
         <nav className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
-          {navLinks.map((link) => (
+          {marketingLinks.map((link) => (
             <a key={link.label} href={link.to} className="transition-colors hover:text-primary">
               {link.label}
             </a>
@@ -35,6 +36,9 @@ export function SiteHeader() {
             <>
               <Link to="/dashboard" className="text-sm font-semibold hover:text-primary">
                 Dashboard
+              </Link>
+              <Link to="/profile" className="text-sm font-semibold hover:text-primary">
+                My profile
               </Link>
               {isAdmin && (
                 <Link to="/admin" className="text-sm font-semibold hover:text-primary">
@@ -75,7 +79,7 @@ export function SiteHeader() {
 
       <div className={cn("border-t border-border px-6 py-4 md:hidden", open ? "block" : "hidden")}>
         <nav className="flex flex-col gap-4 text-sm font-medium text-muted-foreground">
-          {navLinks.map((link) => (
+          {marketingLinks.map((link) => (
             <a key={link.label} href={link.to} onClick={() => setOpen(false)}>
               {link.label}
             </a>
@@ -85,6 +89,9 @@ export function SiteHeader() {
               <>
                 <Link to="/dashboard" onClick={() => setOpen(false)} className="font-semibold text-foreground">
                   Dashboard
+                </Link>
+                <Link to="/profile" onClick={() => setOpen(false)} className="font-semibold text-foreground">
+                  My profile
                 </Link>
                 {isAdmin && (
                   <Link to="/admin" onClick={() => setOpen(false)} className="font-semibold text-foreground">
