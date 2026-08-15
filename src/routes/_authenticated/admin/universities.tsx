@@ -7,6 +7,8 @@ import {
   type AdminUniversity,
 } from "@/lib/admin";
 import { ActivePill, PublicationPill, StatusPill } from "@/components/StatusPill";
+import { UniversityApsRuleCard } from "@/components/UniversityApsRuleCard";
+import { fetchApsRules, type ApsCalculationRule } from "@/lib/aps";
 
 export const Route = createFileRoute("/_authenticated/admin/universities")({
   head: () => ({
@@ -24,16 +26,18 @@ export const Route = createFileRoute("/_authenticated/admin/universities")({
 function AdminUniversitiesPage() {
   const [universities, setUniversities] = useState<AdminUniversity[]>([]);
   const [faculties, setFaculties] = useState<AdminFaculty[]>([]);
+  const [rules, setRules] = useState<ApsCalculationRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
-    Promise.all([fetchAdminUniversities(), fetchAdminFaculties()])
-      .then(([u, f]) => {
+    Promise.all([fetchAdminUniversities(), fetchAdminFaculties(), fetchApsRules()])
+      .then(([u, f, r]) => {
         if (!active) return;
         setUniversities(u);
         setFaculties(f);
+        setRules(r);
         setLoading(false);
       })
       .catch(() => {
@@ -45,6 +49,15 @@ function AdminUniversitiesPage() {
       active = false;
     };
   }, []);
+
+  function handleRuleChanged(universityId: string, ruleId: string | null) {
+    setUniversities((prev) =>
+      prev.map((u) => (u.id === universityId ? { ...u, aps_rule_id: ruleId } : u)),
+    );
+    fetchApsRules()
+      .then((r) => setRules(r))
+      .catch(() => undefined);
+  }
 
   return (
     <section>
@@ -110,6 +123,12 @@ function AdminUniversitiesPage() {
                     ))}
                   </ul>
                 )}
+
+                <UniversityApsRuleCard
+                  university={uni}
+                  rules={rules}
+                  onChanged={handleRuleChanged}
+                />
               </article>
             );
           })}
