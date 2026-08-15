@@ -22,7 +22,6 @@ import { ApsRuleReviewCard } from "@/components/ApsRuleReviewCard";
 import { InstitutionReviewCard } from "@/components/InstitutionReviewCard";
 import { FacultyReviewCard } from "@/components/FacultyReviewCard";
 import { ApsCalculatorAiReviewCard } from "@/components/ApsCalculatorAiReviewCard";
-import { ApsCalculatorManager } from "@/components/ApsCalculatorManager";
 import {
   findMissingInformation,
   hasBlockingGaps,
