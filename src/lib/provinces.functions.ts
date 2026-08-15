@@ -19,7 +19,9 @@ const ALL_SA_PROVINCES = [
  * Uses the service-role client so it can insert into the provinces table
  * regardless of RLS.
  */
-export const ensureAllProvinces = createServerFn({ method: "POST" }).handler(async () => {
+export const ensureAllProvinces = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => {
   const admin = getSupabaseAdmin();
 
   const { data: existing } = await admin.from("provinces").select("code");
