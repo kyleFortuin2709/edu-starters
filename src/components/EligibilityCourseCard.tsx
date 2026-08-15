@@ -25,12 +25,12 @@ export function EligibilityCourseCard({
         className,
       )}
     >
-      <div className="absolute right-8 top-6 flex flex-col items-end gap-3">
+      <div className="mb-5 flex items-start justify-between gap-4">
         <EligibilityStatusBadge status={course.status} />
         <SaveCourseButton courseId={course.courseId} />
       </div>
 
-      <p className="mb-4 max-w-[70%] font-mono text-xs uppercase text-muted-foreground">
+      <p className="mb-4 font-mono text-xs uppercase text-muted-foreground">
         {course.universityName ?? "Institution"}
         {course.isDemoCourse ? " · Demo data" : ""}
       </p>
