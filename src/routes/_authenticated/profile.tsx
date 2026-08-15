@@ -1,12 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { BookMarked, Compass, FileText, GraduationCap } from "lucide-react";
+import { BookMarked, Compass, FileText, GraduationCap, MessageSquare } from "lucide-react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { ActionButton } from "@/components/ActionButton";
 import { useAuth } from "@/lib/auth";
 import { fetchMyProfile, isProfileComplete, type StudentProfile } from "@/lib/profile";
 import { countMyResults } from "@/lib/results";
 import { useSavedCourses } from "@/lib/saved-courses-context";
+import { fetchMyConversations } from "@/lib/advisor-conversations";
 import { ApsScoresCard } from "@/components/ApsScoresCard";
 import { ToleranceSettingsCard } from "@/components/ToleranceSettingsCard";
 import {
@@ -43,6 +44,7 @@ function ProfilePage() {
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [subjectCount, setSubjectCount] = useState(0);
   const [career, setCareer] = useState<CareerProfileResult | null>(null);
+  const [conversationCount, setConversationCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -52,8 +54,9 @@ function ProfilePage() {
       fetchMyProfile(user.id),
       countMyResults(user.id),
       fetchMyCareerProfile(user.id).catch(() => null),
+      fetchMyConversations(user.id).catch(() => []),
     ])
-      .then(([data, count, careerProfile]) => {
+      .then(([data, count, careerProfile, conversations]) => {
         if (!active) return;
         if (!isProfileComplete(data)) {
           navigate({ to: "/profile-setup", replace: true });
@@ -61,6 +64,7 @@ function ProfilePage() {
         }
         setProfile(data);
         setSubjectCount(count);
+        setConversationCount(conversations.length);
         setCareer(careerProfile?.completedAt ? careerProfile : null);
         setLoading(false);
       })
@@ -122,6 +126,21 @@ function ProfilePage() {
               <ActionButton variant="outline">See saved courses</ActionButton>
             </Link>
           </div>
+        </div>
+
+        <div className="mt-6 rounded-[2rem] border border-border bg-card p-8">
+          <div className="grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary">
+            <MessageSquare className="size-6" />
+          </div>
+          <h2 className="mt-6 font-display text-xl font-semibold">Saved conversations</h2>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            {conversationCount > 0
+              ? `${conversationCount} course advisor conversation${conversationCount === 1 ? "" : "s"} saved, grouped by faculty.`
+              : "Chats with the AI course advisor are saved per course so you can continue them later."}
+          </p>
+          <Link to="/conversations" className="mt-6 inline-block">
+            <ActionButton variant="outline">See saved conversations</ActionButton>
+          </Link>
         </div>
 
         <div className="mt-6 rounded-[2rem] border border-border bg-card p-8">
