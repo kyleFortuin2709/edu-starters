@@ -58,6 +58,7 @@ function ProspectusDetailPage() {
   const [extracting, setExtracting] = useState(false);
   const [stagedCollapsed, setStagedCollapsed] = useState(true);
   const [openFaculties, setOpenFaculties] = useState<Record<string, boolean>>({});
+  const [facultiesReady, setFacultiesReady] = useState(false);
   const unpublishedCount = staged.filter((s) => s.status !== "published").length;
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number; name: string } | null>(
@@ -391,6 +392,7 @@ function ProspectusDetailPage() {
         prospectusId={doc.id}
         universityId={doc.university_id}
         staged={staged}
+        onReadyChange={setFacultiesReady}
         onStagedUpdated={(ids, facultyName) =>
           setStaged((prev) =>
             prev.map((s) => (ids.includes(s.id) ? { ...s, faculty_name: facultyName } : s)),
@@ -398,7 +400,15 @@ function ProspectusDetailPage() {
         }
       />
 
-      <ApsRuleReviewCard doc={doc} locked={!doc.university_id}>
+      <ApsRuleReviewCard
+        doc={doc}
+        locked={!doc.university_id || !facultiesReady}
+        lockedReason={
+          !doc.university_id
+            ? "Register or link the institution in Step 1 first — APS calculators belong to an institution."
+            : "Finish Step 2 first — every faculty needs to be mapped and published before APS calculators can be scoped to them."
+        }
+      >
         {doc.university_id ? (
           <ApsCalculatorAiReviewCard
             prospectusId={doc.id}
@@ -410,254 +420,267 @@ function ProspectusDetailPage() {
         ) : null}
       </ApsRuleReviewCard>
 
-      <div
-        className={`mt-10 rounded-[2rem] border bg-card p-6 md:p-8 ${
-          stagedCollapsed && unpublishedCount > 0 ? "border-warning/50 bg-warning/5" : "border-border"
-        }`}
-      >
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 className="font-display text-2xl font-semibold">Step 4 · Staged courses</h2>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              {unpublishedCount > 0 ? (
-                <span className="rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-xs font-semibold text-warning-foreground">
-                  {unpublishedCount} course{unpublishedCount === 1 ? "" : "s"} not published
-                </span>
-              ) : (
-                staged.length > 0 && (
-                  <span className="rounded-full border border-success/40 bg-success/10 px-3 py-1 text-xs font-semibold text-success">
-                    All courses published
-                  </span>
-                )
-              )}
-              <span className="text-xs text-muted-foreground">{staged.length} staged</span>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setStagedCollapsed((v) => !v)}
-            aria-expanded={!stagedCollapsed}
-            aria-label={stagedCollapsed ? "Expand staged courses" : "Collapse staged courses"}
-            className="rounded-full border border-border p-2 hover:bg-secondary"
-          >
-            {stagedCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-          </button>
+      {!facultiesReady ? (
+        <div className="mt-10 rounded-[2rem] border border-border bg-card p-6 opacity-60 md:p-8">
+          <h2 className="font-display text-2xl font-semibold text-muted-foreground">
+            Step 4 · Staged courses
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {!doc.university_id
+              ? "Register or link the institution in Step 1 first."
+              : "Finish Step 2 first — courses can only be published once their faculties are mapped and live."}
+          </p>
         </div>
-
-        {!stagedCollapsed && (
-          <>
-        <p className="mt-4 text-sm text-muted-foreground">
-          Staged records are a safe scratch space. They are never shown to students and are not part
-          of the live course database.
-        </p>
-
-        <div className="mt-5 rounded-2xl border border-border bg-background p-4">
-          <div className="flex flex-wrap items-center gap-2">
+      ) : (
+        <div
+          className={`mt-10 rounded-[2rem] border bg-card p-6 md:p-8 ${
+            stagedCollapsed && unpublishedCount > 0 ? "border-warning/50 bg-warning/5" : "border-border"
+          }`}
+        >
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="font-display text-2xl font-semibold">Step 4 · Staged courses</h2>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {unpublishedCount > 0 ? (
+                  <span className="rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-xs font-semibold text-warning-foreground">
+                    {unpublishedCount} course{unpublishedCount === 1 ? "" : "s"} not published
+                  </span>
+                ) : (
+                  staged.length > 0 && (
+                    <span className="rounded-full border border-success/40 bg-success/10 px-3 py-1 text-xs font-semibold text-success">
+                      All courses published
+                    </span>
+                  )
+                )}
+                <span className="text-xs text-muted-foreground">{staged.length} staged</span>
+              </div>
+            </div>
             <button
               type="button"
-              disabled={bulkBusy || readyCourses.length === 0}
-              onClick={() => publishBatch(readyCourses)}
-              className="rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background hover:bg-primary disabled:opacity-60"
+              onClick={() => setStagedCollapsed((v) => !v)}
+              aria-expanded={!stagedCollapsed}
+              aria-label={stagedCollapsed ? "Expand staged courses" : "Collapse staged courses"}
+              className="rounded-full border border-border p-2 hover:bg-secondary"
             >
-              {bulkBusy
-                ? "Publishing…"
-                : `Publish all ready courses (${readyCourses.length})`}
+              {stagedCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
             </button>
-            <span className="text-xs text-muted-foreground">
-              {unpublishedCount - readyCourses.length} course
-              {unpublishedCount - readyCourses.length === 1 ? "" : "s"} still need a fix before they
-              can go live.
-            </span>
           </div>
-          {bulkProgress && (
-            <div className="mt-3">
-              <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-                <div
-                  className="h-full rounded-full bg-primary transition-all"
-                  style={{
-                    width: `${Math.round((bulkProgress.done / Math.max(bulkProgress.total, 1)) * 100)}%`,
-                  }}
-                />
-              </div>
-              <p className="mt-2 text-xs text-muted-foreground">
-                {bulkProgress.done} of {bulkProgress.total} · {bulkProgress.name}
-              </p>
-            </div>
-          )}
-          {bulkReport && (
-            <div className="mt-3 space-y-2 text-xs">
-              {bulkReport.skipped.length > 0 && (
-                <details className="rounded-xl border border-warning/40 bg-warning/5 p-3">
-                  <summary className="cursor-pointer font-semibold text-warning-foreground">
-                    {bulkReport.skipped.length} skipped — missing required details
-                  </summary>
-                  <ul className="mt-2 space-y-1 text-muted-foreground">
-                    {bulkReport.skipped.map((s) => (
-                      <li key={s.name}>
-                        {s.name} — {s.reason}
-                      </li>
-                    ))}
-                  </ul>
-                </details>
-              )}
-              {bulkReport.failed.length > 0 && (
-                <details className="rounded-xl border border-destructive/30 bg-destructive/5 p-3">
-                  <summary className="cursor-pointer font-semibold text-destructive">
-                    {bulkReport.failed.length} failed
-                  </summary>
-                  <ul className="mt-2 space-y-1 text-muted-foreground">
-                    {bulkReport.failed.map((f) => (
-                      <li key={f.name}>
-                        {f.name} — {f.reason}
-                      </li>
-                    ))}
-                  </ul>
-                </details>
-              )}
-              {bulkReport.warnings.length > 0 && (
-                <details className="rounded-xl border border-border p-3">
-                  <summary className="cursor-pointer font-semibold">
-                    {bulkReport.warnings.length} warning
-                    {bulkReport.warnings.length === 1 ? "" : "s"}
-                  </summary>
-                  <ul className="mt-2 space-y-1 text-muted-foreground">
-                    {bulkReport.warnings.map((w) => (
-                      <li key={w}>{w}</li>
-                    ))}
-                  </ul>
-                </details>
-              )}
-            </div>
-          )}
-        </div>
-        {!doc.university_id && (
-          <p className="mt-4 rounded-2xl border border-border bg-background p-4 text-sm text-muted-foreground">
-            Register or link the institution above first. Course review stays open, but no course
-            can be published until this document belongs to an institution.
-          </p>
-        )}
 
-        <form onSubmit={addStaged} className="mt-6 flex flex-wrap items-end gap-3">
-          <div className="min-w-[16rem] flex-1">
-            <TextField
-              id="staged-name"
-              label="New staged course name"
-              placeholder="e.g. Bachelor of Science"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={busy || !newName.trim()}
-            className="rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-background hover:bg-primary disabled:opacity-60"
-          >
-            Create staging record
-          </button>
-        </form>
-
-        {staged.length === 0 ? (
-          <p className="mt-6 rounded-2xl border border-border bg-background p-6 text-sm text-muted-foreground">
-            No staged courses yet. Create one above to start capturing course information for
-            review.
+          {!stagedCollapsed && (
+            <>
+          <p className="mt-4 text-sm text-muted-foreground">
+            Staged records are a safe scratch space. They are never shown to students and are not part
+            of the live course database.
           </p>
-        ) : (
-          <div className="mt-6 space-y-3">
-            {groupStagedByFaculty(staged).map(({ faculty, courses }) => {
-              const key = faculty ?? "__none__";
-              const pending = courses.filter((c) => c.status !== "published").length;
-              const open = openFaculties[key] ?? false;
-              return (
-              <div
-                key={key}
-                className={`space-y-3 rounded-2xl border p-4 ${
-                  pending > 0 ? "border-warning/40" : "border-border"
-                }`}
+
+          <div className="mt-5 rounded-2xl border border-border bg-background p-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                disabled={bulkBusy || readyCourses.length === 0}
+                onClick={() => publishBatch(readyCourses)}
+                className="rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background hover:bg-primary disabled:opacity-60"
               >
-                <button
-                  type="button"
-                  onClick={() => setOpenFaculties((prev) => ({ ...prev, [key]: !open }))}
-                  aria-expanded={open}
-                  className="flex w-full flex-wrap items-center justify-between gap-2 text-left"
+                {bulkBusy
+                  ? "Publishing…"
+                  : `Publish all ready courses (${readyCourses.length})`}
+              </button>
+              <span className="text-xs text-muted-foreground">
+                {unpublishedCount - readyCourses.length} course
+                {unpublishedCount - readyCourses.length === 1 ? "" : "s"} still need a fix before they
+                can go live.
+              </span>
+            </div>
+            {bulkProgress && (
+              <div className="mt-3">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all"
+                    style={{
+                      width: `${Math.round((bulkProgress.done / Math.max(bulkProgress.total, 1)) * 100)}%`,
+                    }}
+                  />
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {bulkProgress.done} of {bulkProgress.total} · {bulkProgress.name}
+                </p>
+              </div>
+            )}
+            {bulkReport && (
+              <div className="mt-3 space-y-2 text-xs">
+                {bulkReport.skipped.length > 0 && (
+                  <details className="rounded-xl border border-warning/40 bg-warning/5 p-3">
+                    <summary className="cursor-pointer font-semibold text-warning-foreground">
+                      {bulkReport.skipped.length} skipped — missing required details
+                    </summary>
+                    <ul className="mt-2 space-y-1 text-muted-foreground">
+                      {bulkReport.skipped.map((s) => (
+                        <li key={s.name}>
+                          {s.name} — {s.reason}
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+                {bulkReport.failed.length > 0 && (
+                  <details className="rounded-xl border border-destructive/30 bg-destructive/5 p-3">
+                    <summary className="cursor-pointer font-semibold text-destructive">
+                      {bulkReport.failed.length} failed
+                    </summary>
+                    <ul className="mt-2 space-y-1 text-muted-foreground">
+                      {bulkReport.failed.map((f) => (
+                        <li key={f.name}>
+                          {f.name} — {f.reason}
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+                {bulkReport.warnings.length > 0 && (
+                  <details className="rounded-xl border border-border p-3">
+                    <summary className="cursor-pointer font-semibold">
+                      {bulkReport.warnings.length} warning
+                      {bulkReport.warnings.length === 1 ? "" : "s"}
+                    </summary>
+                    <ul className="mt-2 space-y-1 text-muted-foreground">
+                      {bulkReport.warnings.map((w) => (
+                        <li key={w}>{w}</li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+              </div>
+            )}
+          </div>
+          {!doc.university_id && (
+            <p className="mt-4 rounded-2xl border border-border bg-background p-4 text-sm text-muted-foreground">
+              Register or link the institution above first. Course review stays open, but no course
+              can be published until this document belongs to an institution.
+            </p>
+          )}
+
+          <form onSubmit={addStaged} className="mt-6 flex flex-wrap items-end gap-3">
+            <div className="min-w-[16rem] flex-1">
+              <TextField
+                id="staged-name"
+                label="New staged course name"
+                placeholder="e.g. Bachelor of Science"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={busy || !newName.trim()}
+              className="rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-background hover:bg-primary disabled:opacity-60"
+            >
+              Create staging record
+            </button>
+          </form>
+
+          {staged.length === 0 ? (
+            <p className="mt-6 rounded-2xl border border-border bg-background p-6 text-sm text-muted-foreground">
+              No staged courses yet. Create one above to start capturing course information for
+              review.
+            </p>
+          ) : (
+            <div className="mt-6 space-y-3">
+              {groupStagedByFaculty(staged).map(({ faculty, courses }) => {
+                const key = faculty ?? "__none__";
+                const pending = courses.filter((c) => c.status !== "published").length;
+                const open = openFaculties[key] ?? false;
+                return (
+                <div
+                  key={key}
+                  className={`space-y-3 rounded-2xl border p-4 ${
+                    pending > 0 ? "border-warning/40" : "border-border"
+                  }`}
                 >
-                  <span className="font-mono text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                    {faculty ?? "No faculty captured"} ({courses.length})
-                  </span>
-                  <span className="flex items-center gap-2">
-                    {pending > 0 ? (
-                      <span className="rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-xs font-semibold text-warning-foreground">
-                        {pending} not published
-                      </span>
-                    ) : (
-                      <span className="rounded-full border border-success/40 bg-success/10 px-3 py-1 text-xs font-semibold text-success">
-                        Published
-                      </span>
-                    )}
-                    {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </span>
-                </button>
-                {pending > 0 && (
                   <button
                     type="button"
-                    disabled={bulkBusy}
-                    onClick={() =>
-                      publishBatch(courses.filter((c) => c.status !== "published" && !hasBlockingGaps(c)))
-                    }
-                    className="rounded-full border border-border px-4 py-2 text-xs font-semibold hover:bg-secondary disabled:opacity-60"
+                    onClick={() => setOpenFaculties((prev) => ({ ...prev, [key]: !open }))}
+                    aria-expanded={open}
+                    className="flex w-full flex-wrap items-center justify-between gap-2 text-left"
                   >
-                    Publish this faculty's ready courses (
-                    {courses.filter((c) => c.status !== "published" && !hasBlockingGaps(c)).length})
+                    <span className="font-mono text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                      {faculty ?? "No faculty captured"} ({courses.length})
+                    </span>
+                    <span className="flex items-center gap-2">
+                      {pending > 0 ? (
+                        <span className="rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-xs font-semibold text-warning-foreground">
+                          {pending} not published
+                        </span>
+                      ) : (
+                        <span className="rounded-full border border-success/40 bg-success/10 px-3 py-1 text-xs font-semibold text-success">
+                          Published
+                        </span>
+                      )}
+                      {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </span>
                   </button>
-                )}
-                {open && courses.map((s) => (
-              <article
-                key={s.id}
-                className="rounded-2xl border border-border bg-background p-5 md:flex md:items-center md:justify-between md:gap-6"
-              >
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-semibold">{s.name}</h3>
-                    <IngestionStatusPill status={s.status} />
-                  </div>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {[
-                      s.faculty_name,
-                      s.qualification_name,
-                      s.aps_requirement != null ? `APS ${s.aps_requirement}` : null,
-                      (() => {
-                        const d = resolveDuration(s);
-                        return d
-                          ? `${d.years} ${d.years === 1 ? "year" : "years"}${d.source === "stated" ? "" : " (est.)"}`
-                          : null;
-                      })(),
-                      s.source_page != null ? `Page ${s.source_page}` : null,
-                    ]
-                      .filter(Boolean)
-                      .join(" · ") || "No details captured yet"}
-                  </p>
-                  {findMissingInformation(s).length > 0 && (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Missing: {findMissingInformation(s).map((m) => m.label).join(", ")}
-                    </p>
+                  {pending > 0 && (
+                    <button
+                      type="button"
+                      disabled={bulkBusy}
+                      onClick={() =>
+                        publishBatch(courses.filter((c) => c.status !== "published" && !hasBlockingGaps(c)))
+                      }
+                      className="rounded-full border border-border px-4 py-2 text-xs font-semibold hover:bg-secondary disabled:opacity-60"
+                    >
+                      Publish this faculty's ready courses (
+                      {courses.filter((c) => c.status !== "published" && !hasBlockingGaps(c)).length})
+                    </button>
                   )}
-                </div>
-                <Link
-                  to="/admin/staged/$stagedId"
-                  params={{ stagedId: s.id }}
-                  className="mt-3 inline-block rounded-full border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary md:mt-0 md:shrink-0"
+                  {open && courses.map((s) => (
+                <article
+                  key={s.id}
+                  className="rounded-2xl border border-border bg-background p-5 md:flex md:items-center md:justify-between md:gap-6"
                 >
-                  View & edit
-                </Link>
-              </article>
-                ))}
-              </div>
-              );
-            })}
-          </div>
-        )}
-          </>
-        )}
-      </div>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-semibold">{s.name}</h3>
+                      <IngestionStatusPill status={s.status} />
+                    </div>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {[
+                        s.faculty_name,
+                        s.qualification_name,
+                        s.aps_requirement != null ? `APS ${s.aps_requirement}` : null,
+                        (() => {
+                          const d = resolveDuration(s);
+                          return d
+                            ? `${d.years} ${d.years === 1 ? "year" : "years"}${d.source === "stated" ? "" : " (est.)"}`
+                            : null;
+                        })(),
+                        s.source_page != null ? `Page ${s.source_page}` : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ") || "No details captured yet"}
+                    </p>
+                    {findMissingInformation(s).length > 0 && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Missing: {findMissingInformation(s).map((m) => m.label).join(", ")}
+                      </p>
+                    )}
+                  </div>
+                  <Link
+                    to="/admin/staged/$stagedId"
+                    params={{ stagedId: s.id }}
+                    className="mt-3 inline-block rounded-full border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary md:mt-0 md:shrink-0"
+                  >
+                    View & edit
+                  </Link>
+                </article>
+                  ))}
+                </div>
+                );
+              })}
+            </div>
+          )}
+            </>
+          )}
+        </div>
+      )}
     </section>
   );
 }
