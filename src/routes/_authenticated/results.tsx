@@ -143,9 +143,9 @@ function ResultsPage() {
     else writeDraft(user.id, rows);
   }, [user, loading, saved, rows]);
 
-  function groupSubjects(list: Subject[]) {
+  function groupSubjects(items: Subject[]) {
     const map = new Map<string, Subject[]>();
-    for (const s of list) {
+    for (const s of items) {
       const list = map.get(s.category) ?? [];
       list.push(s);
       map.set(s.category, list);
@@ -214,6 +214,7 @@ function ResultsPage() {
         user.id,
         filled.map((r) => ({ subjectId: r.subjectId, mark: Number(r.mark) })),
       );
+      writeDraft(user.id, null);
       setSaved(true);
     } catch {
       setFormError("We couldn't save your results. Please check your connection and try again.");
