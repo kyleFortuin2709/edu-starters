@@ -25,7 +25,13 @@ type Props = {
  * wording the AI found, then map each wording onto one standardised faculty
  * for this institution — an existing record or a new one.
  */
-export function FacultyReviewCard({ prospectusId, universityId, staged, onStagedUpdated }: Props) {
+export function FacultyReviewCard({
+  prospectusId,
+  universityId,
+  staged,
+  onStagedUpdated,
+  onReadyChange,
+}: Props & { onReadyChange?: (ready: boolean) => void }) {
   const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [choice, setChoice] = useState<Record<string, string>>({});
   const [newName, setNewName] = useState<Record<string, string>>({});
@@ -56,6 +62,11 @@ export function FacultyReviewCard({ prospectusId, universityId, staged, onStaged
     const f = g.match;
     return !f || f.publication_status !== "published" || !f.is_active;
   }).length;
+
+  const ready = !!universityId && (staged.length === 0 || notLiveCount === 0);
+  useEffect(() => {
+    onReadyChange?.(ready);
+  }, [ready, onReadyChange]);
 
   async function apply(key: string, group: (typeof groups)[number]) {
     if (!universityId) return;

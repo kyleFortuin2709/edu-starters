@@ -10,11 +10,13 @@ import { apsMethodologyText, proposedAps, type ProspectusDocument } from "@/lib/
 export function ApsRuleReviewCard({
   doc,
   locked = false,
+  lockedReason,
   children,
 }: {
   doc: ProspectusDocument;
-  /** Greyed out until the institution has been registered/linked. */
+  /** Greyed out until earlier steps are done. */
   locked?: boolean;
+  lockedReason?: string;
   /** Extra review content (e.g. the institution's APS calculators). */
   children?: React.ReactNode;
 }) {
@@ -29,8 +31,8 @@ export function ApsRuleReviewCard({
           Step 3 · APS calculation
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Register or link the institution in Step 1 first — APS calculators belong to an
-          institution.
+          {lockedReason ??
+            "Register or link the institution in Step 1 first — APS calculators belong to an institution."}
         </p>
       </div>
     );
