@@ -96,7 +96,7 @@ function AdminUniversitiesPage() {
                   <div className="flex flex-wrap gap-2">
                     <PublicationPill status={uni.publication_status} />
                     <ActivePill active={uni.is_active} />
-                    {uni.is_demo && <StatusPill tone="demo">Demo data</StatusPill>}
+                    {uni.is_demo && <StatusPill tone="demo">Unverified data</StatusPill>}
                   </div>
                 </div>
 

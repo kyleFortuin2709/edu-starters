@@ -144,11 +144,6 @@ function CourseDetailPage() {
           {course?.description ? (
             <p className="mt-5 max-w-2xl text-sm text-muted-foreground">{course.description}</p>
           ) : null}
-          {eligibility.isDemoCourse ? (
-            <p className="mt-5 inline-block rounded-full border border-border px-3 py-1 font-mono text-[0.65rem] uppercase text-muted-foreground">
-              Demo course data
-            </p>
-          ) : null}
         </header>
 
         <CourseOverview

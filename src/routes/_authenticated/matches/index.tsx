@@ -27,7 +27,7 @@ export const Route = createFileRoute("/_authenticated/matches/")({
       {
         name: "description",
         content:
-          "See which demo courses you qualify for, almost qualify for, or don't yet meet, based on your NSC results.",
+          "See which courses you qualify for, almost qualify for, or don't yet meet, based on your NSC results.",
       },
       { property: "og:title", content: "Your course matches — EduStarter" },
       {
@@ -53,7 +53,7 @@ const EMPTY_COPY: Record<EligibilityStatus, { title: string; body: string }> = {
   },
   ALMOST_QUALIFY: {
     title: "Nothing is in the almost-qualify range",
-    body: "Courses appear here when you fall short of a requirement by no more than your tolerance settings, which you can change on your dashboard.",
+    body: "Courses appear here when you fall short of a requirement by no more than your tolerance settings, which you can change on your profile.",
   },
   DONT_QUALIFY: {
     title: "No courses fall outside your reach",
@@ -157,7 +157,7 @@ function MatchesPage() {
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-              Course matches · Demo data
+              Course matches
             </p>
             <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">
               Where you may qualify

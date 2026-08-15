@@ -180,7 +180,7 @@ function AdminCourseEditPage() {
         <h1 className="font-display text-4xl font-semibold tracking-tight">{course.name}</h1>
         <PublicationPill status={course.publication_status} />
         <ActivePill active={course.is_active} />
-        {course.is_demo && <StatusPill tone="demo">Demo data</StatusPill>}
+        {course.is_demo && <StatusPill tone="demo">Unverified data</StatusPill>}
       </div>
       <p className="mt-2 text-sm text-muted-foreground">
         {[course.universities?.name, course.faculties?.name].filter(Boolean).join(" · ")}

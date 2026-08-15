@@ -1,12 +1,14 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { BookMarked, Compass, FileText } from "lucide-react";
+import { BookMarked, Compass, FileText, GraduationCap } from "lucide-react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { ActionButton } from "@/components/ActionButton";
 import { useAuth } from "@/lib/auth";
-import { fetchMyProfile, type StudentProfile } from "@/lib/profile";
+import { fetchMyProfile, isProfileComplete, type StudentProfile } from "@/lib/profile";
 import { countMyResults } from "@/lib/results";
 import { useSavedCourses } from "@/lib/saved-courses-context";
+import { ApsScoresCard } from "@/components/ApsScoresCard";
+import { ToleranceSettingsCard } from "@/components/ToleranceSettingsCard";
 import {
   RIASEC_META,
   RIASEC_ORDER,
@@ -36,6 +38,7 @@ export const Route = createFileRoute("/_authenticated/profile")({
 
 function ProfilePage() {
   const { user, displayName } = useAuth();
+  const navigate = useNavigate();
   const { savedIds } = useSavedCourses();
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [subjectCount, setSubjectCount] = useState(0);
@@ -52,6 +55,10 @@ function ProfilePage() {
     ])
       .then(([data, count, careerProfile]) => {
         if (!active) return;
+        if (!isProfileComplete(data)) {
+          navigate({ to: "/profile-setup", replace: true });
+          return;
+        }
         setProfile(data);
         setSubjectCount(count);
         setCareer(careerProfile?.completedAt ? careerProfile : null);
@@ -63,7 +70,7 @@ function ProfilePage() {
     return () => {
       active = false;
     };
-  }, [user]);
+  }, [user, navigate]);
 
   const fullName =
     [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || displayName || "Student";
@@ -116,6 +123,30 @@ function ProfilePage() {
             </Link>
           </div>
         </div>
+
+        <div className="mt-6 rounded-[2rem] border border-border bg-card p-8">
+          <div className="grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary">
+            <GraduationCap className="size-6" />
+          </div>
+          <h2 className="mt-6 font-display text-xl font-semibold">Course matches</h2>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            {subjectCount > 0
+              ? "See how your results compare with each course's published entry requirements."
+              : "Add your subjects and marks first, then we can compare them with course entry requirements."}
+          </p>
+          <Link to={subjectCount > 0 ? "/matches" : "/results"} className="mt-6 inline-block">
+            <ActionButton size="lg">
+              {subjectCount > 0 ? "View my course matches" : "Add my results"}
+            </ActionButton>
+          </Link>
+        </div>
+
+        {user && (
+          <div className="mt-6 grid gap-6 md:grid-cols-2">
+            <ApsScoresCard userId={user.id} />
+            <ToleranceSettingsCard userId={user.id} profile={profile} />
+          </div>
+        )}
 
         <div className="mt-6 rounded-[2rem] border border-border bg-card p-8">
           <div className="grid size-12 place-items-center rounded-2xl bg-warning/10 text-warning">
