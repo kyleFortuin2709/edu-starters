@@ -87,9 +87,6 @@ export function CourseOverview({
         <div className="mt-6 rounded-[2rem] border border-border bg-card p-8">
           <span className="font-mono text-xs uppercase text-muted-foreground">Career ideas</span>
           <h2 className="mt-3 font-display text-2xl font-semibold">Where this could lead</h2>
-        <div className="mt-6 rounded-[2rem] border border-border bg-card p-8">
-          <span className="font-mono text-xs uppercase text-muted-foreground">Career ideas</span>
-          <h2 className="mt-3 font-display text-2xl font-semibold">Where this could lead</h2>
           <ul className="mt-6 grid gap-4 sm:grid-cols-2">
             {careers.map((career, index) => (
               <li key={career.title} className="rounded-2xl border border-border p-5">
