@@ -15,6 +15,8 @@ export type CourseRiasecProfile = {
   courseId: string;
   scores: Record<RiasecDimension, number>;
   notes: string | null;
+  /** Recommendations only use a profile once an admin has approved it. */
+  isReviewed: boolean;
 };
 
 const COLUMN_BY_DIMENSION: Record<RiasecDimension, string> = {
@@ -29,7 +31,12 @@ const COLUMN_BY_DIMENSION: Record<RiasecDimension, string> = {
 function rowToProfile(row: any): CourseRiasecProfile {
   const scores = {} as Record<RiasecDimension, number>;
   for (const dim of RIASEC_ORDER) scores[dim] = Number(row[COLUMN_BY_DIMENSION[dim]] ?? 0);
-  return { courseId: row.course_id, scores, notes: row.notes ?? null };
+  return {
+    courseId: row.course_id,
+    scores,
+    notes: row.notes ?? null,
+    isReviewed: Boolean(row.is_reviewed),
+  };
 }
 
 export async function fetchCourseRiasecProfiles(
@@ -41,7 +48,7 @@ export async function fetchCourseRiasecProfiles(
   let query = db
     .from("course_riasec_profiles")
     .select(
-      "course_id, realistic_score, investigative_score, artistic_score, social_score, enterprising_score, conventional_score, notes",
+      "course_id, realistic_score, investigative_score, artistic_score, social_score, enterprising_score, conventional_score, notes, is_reviewed",
     );
   if (courseIds) query = query.in("course_id", courseIds);
 
@@ -55,13 +62,28 @@ export async function fetchCourseRiasecProfiles(
 }
 
 export async function saveCourseRiasecProfile(profile: CourseRiasecProfile) {
-  const payload: Record<string, unknown> = { course_id: profile.courseId, notes: profile.notes };
+  const payload: Record<string, unknown> = {
+    course_id: profile.courseId,
+    notes: profile.notes,
+    is_reviewed: profile.isReviewed,
+    reviewed_at: profile.isReviewed ? new Date().toISOString() : null,
+  };
   for (const dim of RIASEC_ORDER) {
     payload[COLUMN_BY_DIMENSION[dim]] = Math.round(profile.scores[dim]);
   }
   const { error } = await db
     .from("course_riasec_profiles")
     .upsert(payload, { onConflict: "course_id" });
+  if (error) throw error;
+}
+
+/** Approving a profile is what makes the backend use it for recommendations. */
+export async function setCourseRiasecReviewed(courseIds: string[], reviewed: boolean) {
+  if (courseIds.length === 0) return;
+  const { error } = await db
+    .from("course_riasec_profiles")
+    .update({ is_reviewed: reviewed, reviewed_at: reviewed ? new Date().toISOString() : null })
+    .in("course_id", courseIds);
   if (error) throw error;
 }
 
