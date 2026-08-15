@@ -59,6 +59,7 @@ function CourseDetailPage() {
   const [course, setCourse] = useState<CourseWithRequirements | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [resultsOpen, setResultsOpen] = useState(true);
 
   useEffect(() => {
     if (!user) return;
