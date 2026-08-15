@@ -411,7 +411,15 @@ export function ResultsDocumentUpload({
       ) : null}
 
       {busy ? (
-        <ExtractionSteps phase={phase} elapsed={elapsed} found={found} checks={checks} />
+        <>
+          {resumed ? (
+            <p className="mt-5 text-sm text-muted-foreground">
+              We picked your upload back up — reading carried on in the background while you were
+              on another page.
+            </p>
+          ) : null}
+          <ExtractionSteps phase={phase} elapsed={elapsed} found={found} checks={checks} />
+        </>
       ) : null}
 
       {file ? (
