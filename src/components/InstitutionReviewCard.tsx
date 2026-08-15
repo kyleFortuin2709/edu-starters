@@ -53,6 +53,7 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [collapsed, setCollapsed] = useState(true);
+  const runEnsureAllProvinces = useServerFn(ensureAllProvinces);
 
   useEffect(() => {
     let active = true;
