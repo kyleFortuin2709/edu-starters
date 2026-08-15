@@ -26,7 +26,7 @@ export function ApsRuleReviewCard({
     return (
       <div className="mt-6 rounded-[2rem] border border-border bg-card p-6 opacity-60 md:p-8">
         <h2 className="font-display text-2xl font-semibold text-muted-foreground">
-          Step 2 · APS calculation
+          Step 3 · APS calculation
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
           Register or link the institution in Step 1 first — APS calculators belong to an
@@ -39,7 +39,7 @@ export function ApsRuleReviewCard({
   return (
     <div className="mt-6 rounded-[2rem] border border-border bg-card p-6 md:p-8">
       <div className="flex flex-wrap items-center gap-3">
-        <h2 className="font-display text-2xl font-semibold">Step 2 · APS calculation</h2>
+        <h2 className="font-display text-2xl font-semibold">Step 3 · APS calculation</h2>
         <button
           type="button"
           onClick={() => setCollapsed((c) => !c)}
