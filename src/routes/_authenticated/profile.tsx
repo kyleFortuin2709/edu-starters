@@ -144,7 +144,21 @@ function ProfilePage() {
         {user && (
           <div className="mt-6 grid gap-6 md:grid-cols-2">
             <ApsScoresCard userId={user.id} />
-            <ToleranceSettingsCard userId={user.id} profile={profile} />
+            <ToleranceSettingsCard
+              userId={user.id}
+              profile={profile}
+              onSaved={({ apsTolerance, subjectPercentageTolerance }) =>
+                setProfile((current) =>
+                  current
+                    ? {
+                        ...current,
+                        aps_tolerance: apsTolerance,
+                        subject_percentage_tolerance: subjectPercentageTolerance,
+                      }
+                    : current,
+                )
+              }
+            />
           </div>
         )}
 

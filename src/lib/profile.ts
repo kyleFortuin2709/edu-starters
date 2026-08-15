@@ -44,14 +44,18 @@ export async function saveMyTolerances(input: {
   apsTolerance: number;
   subjectPercentageTolerance: number;
 }) {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("profiles")
     .update({
       aps_tolerance: Math.max(0, Math.round(input.apsTolerance)),
       subject_percentage_tolerance: Math.max(0, Math.round(input.subjectPercentageTolerance)),
     })
-    .eq("id", input.userId);
+    .eq("id", input.userId)
+    .select("id, aps_tolerance, subject_percentage_tolerance")
+    .maybeSingle();
   if (error) throw error;
+  if (!data) throw new Error("Your settings could not be saved to your profile.");
+  return data;
 }
 
 export async function saveMyProfile(input: {
