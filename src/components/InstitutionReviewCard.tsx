@@ -12,6 +12,8 @@ import {
 import { proposedInstitution, type ProspectusDocument } from "@/lib/prospectus";
 import { TextField } from "@/components/TextField";
 import { SelectField } from "@/components/SelectField";
+import { useServerFn } from "@tanstack/react-start";
+import { ensureAllProvinces } from "@/lib/provinces.functions";
 import { PublicationPill, ActivePill } from "@/components/StatusPill";
 
 type Province = { id: string; name: string; code: string };
