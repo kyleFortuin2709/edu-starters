@@ -301,7 +301,7 @@ function ResultsPage() {
 
               {saved ? (
                 <Link
-                  to="/dashboard"
+                  to="/profile"
                   className="block rounded-2xl border border-border px-6 py-3.5 text-center text-base font-bold transition-colors hover:bg-secondary"
                 >
                   Continue to my dashboard

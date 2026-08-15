@@ -44,7 +44,7 @@ function LoginPage() {
       setError(friendlyAuthError(signInError.message));
       return;
     }
-    navigate({ to: "/dashboard" });
+    navigate({ to: "/profile" });
   }
 
   return (

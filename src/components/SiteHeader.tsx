@@ -34,7 +34,7 @@ export function SiteHeader() {
         <div className="hidden items-center gap-4 md:flex">
           {user ? (
             <>
-              <Link to="/dashboard" className="text-sm font-semibold hover:text-primary">
+              <Link to="/profile" className="text-sm font-semibold hover:text-primary">
                 Dashboard
               </Link>
               <Link to="/profile" className="text-sm font-semibold hover:text-primary">
@@ -87,7 +87,7 @@ export function SiteHeader() {
           <div className="flex flex-col gap-3 border-t border-border pt-4">
             {user ? (
               <>
-                <Link to="/dashboard" onClick={() => setOpen(false)} className="font-semibold text-foreground">
+                <Link to="/profile" onClick={() => setOpen(false)} className="font-semibold text-foreground">
                   Dashboard
                 </Link>
                 <Link to="/profile" onClick={() => setOpen(false)} className="font-semibold text-foreground">

@@ -37,7 +37,7 @@ export const Route = createFileRoute("/")({
   }),
   beforeLoad: async () => {
     const { data } = await supabase.auth.getUser();
-    if (data.user) throw redirect({ to: "/dashboard" });
+    if (data.user) throw redirect({ to: "/profile" });
   },
   component: Index,
 });

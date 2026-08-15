@@ -43,7 +43,7 @@ function SignupPage() {
     const { data, error: signUpError } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+      options: { emailRedirectTo: `${window.location.origin}/profile` },
     });
     setBusy(false);
     if (signUpError) {

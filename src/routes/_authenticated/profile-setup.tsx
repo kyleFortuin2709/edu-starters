@@ -67,7 +67,7 @@ function ProfileSetupPage() {
     setSaving(true);
     try {
       await saveMyProfile({ userId: user.id, firstName, lastName });
-      navigate({ to: "/dashboard" });
+      navigate({ to: "/profile" });
     } catch {
       setFormError("We couldn't save your profile. Please check your connection and try again.");
     } finally {

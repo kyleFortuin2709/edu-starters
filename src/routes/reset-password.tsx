@@ -61,7 +61,7 @@ function ResetPasswordPage() {
       setError(friendlyAuthError(updateError.message));
       return;
     }
-    navigate({ to: "/dashboard" });
+    navigate({ to: "/profile" });
   }
 
   return (
