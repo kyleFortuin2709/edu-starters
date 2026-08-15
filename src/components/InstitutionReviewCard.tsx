@@ -16,6 +16,18 @@ import { PublicationPill, ActivePill } from "@/components/StatusPill";
 
 type Province = { id: string; name: string; code: string };
 
+const ALL_SA_PROVINCES: Province[] = [
+  { id: "prov-ec", code: "EC", name: "Eastern Cape" },
+  { id: "prov-fs", code: "FS", name: "Free State" },
+  { id: "prov-gp", code: "GP", name: "Gauteng" },
+  { id: "prov-kzn", code: "KZN", name: "KwaZulu-Natal" },
+  { id: "prov-lp", code: "LP", name: "Limpopo" },
+  { id: "prov-mp", code: "MP", name: "Mpumalanga" },
+  { id: "prov-nc", code: "NC", name: "Northern Cape" },
+  { id: "prov-nw", code: "NW", name: "North West" },
+  { id: "prov-wc", code: "WC", name: "Western Cape" },
+];
+
 type Props = {
   doc: ProspectusDocument;
   onInstitutionLinked: (institution: Institution, stagedUpdated: number) => void;
