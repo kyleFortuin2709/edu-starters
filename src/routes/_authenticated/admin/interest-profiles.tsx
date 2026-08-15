@@ -7,6 +7,7 @@ import { RIASEC_META, RIASEC_ORDER, type RiasecDimension } from "@/lib/career";
 import {
   fetchCourseRiasecProfiles,
   saveCourseRiasecProfile,
+  setCourseRiasecReviewed,
   topDimensions,
   type CourseRiasecProfile,
 } from "@/lib/course-riasec";
@@ -65,6 +66,33 @@ function InterestProfilesPage() {
     () => courses.filter((c) => !profiles.has(c.id)),
     [courses, profiles],
   );
+  const unapproved = useMemo(
+    () => courses.filter((c) => profiles.get(c.id) && !profiles.get(c.id)!.isReviewed),
+    [courses, profiles],
+  );
+  const approvedCount = useMemo(
+    () => courses.filter((c) => profiles.get(c.id)?.isReviewed).length,
+    [courses, profiles],
+  );
+
+  const setApproval = async (courseIds: string[], reviewed: boolean) => {
+    if (courseIds.length === 0) return;
+    setBusy(true);
+    setError("");
+    try {
+      await setCourseRiasecReviewed(courseIds, reviewed);
+      await load();
+      setStatus(
+        reviewed
+          ? `${courseIds.length} profile${courseIds.length === 1 ? "" : "s"} approved — students will see these recommendations.`
+          : "Approval removed.",
+      );
+    } catch {
+      setError("We couldn't update the approval status.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const runGeneration = async (targets: AdminCourse[]) => {
     if (targets.length === 0) return;
@@ -107,6 +135,7 @@ function InterestProfilesPage() {
         courseId: editing,
         scores: draft,
         notes: profiles.get(editing)?.notes ?? null,
+        isReviewed: profiles.get(editing)?.isReviewed ?? false,
       });
       setEditing(null);
       setDraft(null);
@@ -137,8 +166,18 @@ function InterestProfilesPage() {
           <p className="mt-1 font-display text-2xl font-semibold">
             {courses.length - missing.length} of {courses.length} courses
           </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {approvedCount} approved for recommendations · {unapproved.length} awaiting approval
+          </p>
         </div>
         <ActionButton
+          onClick={() => void setApproval(unapproved.map((c) => c.id), true)}
+          disabled={busy || unapproved.length === 0}
+        >
+          Approve all ({unapproved.length})
+        </ActionButton>
+        <ActionButton
+          variant="outline"
           onClick={() => void runGeneration(missing)}
           disabled={busy || missing.length === 0}
         >
@@ -208,6 +247,13 @@ function InterestProfilesPage() {
                               .map((d) => `${RIASEC_META[d].name} ${profile.scores[d]}%`)
                               .join(" · ")}
                           </p>
+                          <p
+                            className={`mt-1 font-mono text-[11px] uppercase ${
+                              profile.isReviewed ? "text-primary" : "text-warning"
+                            }`}
+                          >
+                            {profile.isReviewed ? "Approved" : "Awaiting approval"}
+                          </p>
                           {profile.notes ? (
                             <p className="mt-1 max-w-md text-xs text-muted-foreground">
                               {profile.notes}
@@ -239,6 +285,16 @@ function InterestProfilesPage() {
                         </div>
                       ) : (
                         <div className="flex justify-end gap-2">
+                          {profile ? (
+                            <ActionButton
+                              size="sm"
+                              variant="outline"
+                              onClick={() => void setApproval([course.id], !profile.isReviewed)}
+                              disabled={busy}
+                            >
+                              {profile.isReviewed ? "Unapprove" : "Approve"}
+                            </ActionButton>
+                          ) : null}
                           <ActionButton
                             size="sm"
                             variant="outline"
