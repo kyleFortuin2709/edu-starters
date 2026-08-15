@@ -7,6 +7,8 @@ import {
   type AdminUniversity,
 } from "@/lib/admin";
 import { ActivePill, PublicationPill, StatusPill } from "@/components/StatusPill";
+import { UniversityApsRuleCard } from "@/components/UniversityApsRuleCard";
+import { fetchApsRules, type ApsCalculationRule } from "@/lib/aps";
 
 export const Route = createFileRoute("/_authenticated/admin/universities")({
   head: () => ({
@@ -24,16 +26,18 @@ export const Route = createFileRoute("/_authenticated/admin/universities")({
 function AdminUniversitiesPage() {
   const [universities, setUniversities] = useState<AdminUniversity[]>([]);
   const [faculties, setFaculties] = useState<AdminFaculty[]>([]);
+  const [rules, setRules] = useState<ApsCalculationRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
-    Promise.all([fetchAdminUniversities(), fetchAdminFaculties()])
-      .then(([u, f]) => {
+    Promise.all([fetchAdminUniversities(), fetchAdminFaculties(), fetchApsRules()])
+      .then(([u, f, r]) => {
         if (!active) return;
         setUniversities(u);
         setFaculties(f);
+        setRules(r);
         setLoading(false);
       })
       .catch(() => {
@@ -46,14 +50,23 @@ function AdminUniversitiesPage() {
     };
   }, []);
 
+  function handleRuleChanged(universityId: string, ruleId: string | null) {
+    setUniversities((prev) =>
+      prev.map((u) => (u.id === universityId ? { ...u, aps_rule_id: ruleId } : u)),
+    );
+    fetchApsRules()
+      .then((r) => setRules(r))
+      .catch(() => undefined);
+  }
+
   return (
     <section>
       <h1 className="mt-8 font-display text-4xl font-semibold tracking-tight">
         Universities & faculties
       </h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
-        Read-only view of every institution, including records that are still drafts and therefore
-        hidden from students.
+        Every institution, including drafts hidden from students. You can also change which APS
+        calculation each university uses.
       </p>
 
       {loading ? (
@@ -110,6 +123,12 @@ function AdminUniversitiesPage() {
                     ))}
                   </ul>
                 )}
+
+                <UniversityApsRuleCard
+                  university={uni}
+                  rules={rules}
+                  onChanged={handleRuleChanged}
+                />
               </article>
             );
           })}
