@@ -17,6 +17,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDirectionRouteImport } from './routes/_authenticated/direction'
 import { Route as AuthenticatedProfileSetupRouteImport } from './routes/_authenticated/profile-setup'
 import { Route as AuthenticatedResultsRouteImport } from './routes/_authenticated/results'
 import { Route as AuthenticatedSavedRouteImport } from './routes/_authenticated/saved'
@@ -67,6 +68,11 @@ const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDirectionRoute = AuthenticatedDirectionRouteImport.update({
+  id: '/direction',
+  path: '/direction',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedProfileSetupRoute =
@@ -147,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/direction': typeof AuthenticatedDirectionRoute
   '/profile-setup': typeof AuthenticatedProfileSetupRoute
   '/results': typeof AuthenticatedResultsRoute
   '/saved': typeof AuthenticatedSavedRoute
@@ -167,6 +174,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/direction': typeof AuthenticatedDirectionRoute
   '/profile-setup': typeof AuthenticatedProfileSetupRoute
   '/results': typeof AuthenticatedResultsRoute
   '/saved': typeof AuthenticatedSavedRoute
@@ -190,6 +198,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/direction': typeof AuthenticatedDirectionRoute
   '/_authenticated/profile-setup': typeof AuthenticatedProfileSetupRoute
   '/_authenticated/results': typeof AuthenticatedResultsRoute
   '/_authenticated/saved': typeof AuthenticatedSavedRoute
@@ -213,6 +222,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin'
     | '/dashboard'
+    | '/direction'
     | '/profile-setup'
     | '/results'
     | '/saved'
@@ -233,6 +243,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/dashboard'
+    | '/direction'
     | '/profile-setup'
     | '/results'
     | '/saved'
@@ -255,6 +266,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
+    | '/_authenticated/direction'
     | '/_authenticated/profile-setup'
     | '/_authenticated/results'
     | '/_authenticated/saved'
@@ -334,6 +346,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/direction': {
+      id: '/_authenticated/direction'
+      path: '/direction'
+      fullPath: '/direction'
+      preLoaderRoute: typeof AuthenticatedDirectionRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/profile-setup': {
@@ -456,6 +475,7 @@ const AuthenticatedAdminRouteRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDirectionRoute: typeof AuthenticatedDirectionRoute
   AuthenticatedProfileSetupRoute: typeof AuthenticatedProfileSetupRoute
   AuthenticatedResultsRoute: typeof AuthenticatedResultsRoute
   AuthenticatedSavedRoute: typeof AuthenticatedSavedRoute
@@ -466,6 +486,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRouteRoute: AuthenticatedAdminRouteRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDirectionRoute: AuthenticatedDirectionRoute,
   AuthenticatedProfileSetupRoute: AuthenticatedProfileSetupRoute,
   AuthenticatedResultsRoute: AuthenticatedResultsRoute,
   AuthenticatedSavedRoute: AuthenticatedSavedRoute,
