@@ -22,18 +22,18 @@ const ALL_SA_PROVINCES = [
 export const ensureAllProvinces = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async () => {
-  const admin = getSupabaseAdmin();
+    const admin = getSupabaseAdmin();
 
-  const { data: existing } = await admin.from("provinces").select("code");
-  const existingCodes = new Set((existing ?? []).map((p) => p.code));
+    const { data: existing } = await admin.from("provinces").select("code");
+    const existingCodes = new Set((existing ?? []).map((p) => p.code));
 
-  const missing = ALL_SA_PROVINCES.filter((p) => !existingCodes.has(p.code));
-  if (missing.length === 0) {
-    return { created: 0, codes: ALL_SA_PROVINCES.map((p) => p.code) };
-  }
+    const missing = ALL_SA_PROVINCES.filter((p) => !existingCodes.has(p.code));
+    if (missing.length === 0) {
+      return { created: 0, codes: ALL_SA_PROVINCES.map((p) => p.code) };
+    }
 
-  const { error, data } = await admin.from("provinces").insert(missing).select("code");
-  if (error) throw error;
+    const { error, data } = await admin.from("provinces").insert(missing).select("code");
+    if (error) throw error;
 
-  return { created: data?.length ?? 0, codes: ALL_SA_PROVINCES.map((p) => p.code) };
-});
+    return { created: data?.length ?? 0, codes: ALL_SA_PROVINCES.map((p) => p.code) };
+  });
