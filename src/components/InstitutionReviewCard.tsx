@@ -57,32 +57,20 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
 
   useEffect(() => {
     let active = true;
-    // Make sure the backend has all nine provinces before rendering the list.
-    runEnsureAllProvinces()
-      .then(() => fetchProvinces())
-      .then((p) => {
-        if (!active) return;
-        return p;
-      })
-      .catch(() => {
-        // Continue with the fetch even if seeding fails; an empty dropdown is
-        // better than a broken page.
-        return fetchProvinces();
-      })
-      .then((p) => {
-        if (!active) return;
-        return fetchAdminUniversities().then((u) => {
-          return [p, u] as const;
-        });
-      })
-      .then(([p, u]) => {
+    async function load() {
+      try {
+        // Make sure the backend has all nine provinces before rendering the list.
+        try {
+          await runEnsureAllProvinces();
+        } catch {
+          // Continue with the fetch even if seeding fails; an empty dropdown is
+          // better than a broken page.
+        }
+        const [p, u] = await Promise.all([fetchProvinces(), fetchAdminUniversities()]);
+        const inst = doc.university_id ? await fetchInstitution(doc.university_id) : null;
         if (!active) return;
         setProvinces(p as Province[]);
         setUniversities(u);
-        return doc.university_id ? fetchInstitution(doc.university_id) : Promise.resolve(null);
-      })
-      .then((inst) => {
-        if (!active) return;
         setLinked(inst);
         if (inst) {
           setForm({
@@ -95,7 +83,7 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
             description: inst.description ?? "",
           });
         } else {
-          const guessed = provinces.find(
+          const guessed = (p as Province[]).find(
             (province) =>
               proposal?.province &&
               province.name.toLowerCase().includes(proposal.province.toLowerCase().replace(/province/i, "").trim()),
@@ -110,10 +98,11 @@ export function InstitutionReviewCard({ doc, onInstitutionLinked }: Props) {
             description: proposal?.institution_type ? `Institution type: ${proposal.institution_type}` : "",
           });
         }
-      })
-      .catch(() => {
+      } catch {
         if (active) setError("We couldn't load the institution list. Please refresh the page.");
-      });
+      }
+    }
+    load();
     return () => {
       active = false;
     };
