@@ -13,6 +13,36 @@ import {
 
 const POLL_MS = 1500;
 const POLL_TIMEOUT_MS = 300_000;
+const JOB_KEY = (userId: string) => `edustarter.matric.job.${userId}`;
+
+type StoredJob = { documentId: string; startedAt: number; fileName: string | null };
+
+function readJob(userId: string): StoredJob | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(JOB_KEY(userId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<StoredJob>;
+    if (typeof parsed.documentId !== "string") return null;
+    return {
+      documentId: parsed.documentId,
+      startedAt: typeof parsed.startedAt === "number" ? parsed.startedAt : Date.now(),
+      fileName: typeof parsed.fileName === "string" ? parsed.fileName : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeJob(userId: string, job: StoredJob | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (job) window.localStorage.setItem(JOB_KEY(userId), JSON.stringify(job));
+    else window.localStorage.removeItem(JOB_KEY(userId));
+  } catch {
+    /* ignore storage failures */
+  }
+}
 
 type Phase = "idle" | "uploading" | "starting" | "processing" | "done" | "error";
 
