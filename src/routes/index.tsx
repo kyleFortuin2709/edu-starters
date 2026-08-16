@@ -2,7 +2,6 @@ import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { FileText,
-  FileText,
   Calculator,
   CheckCircle2,
   Compass,
