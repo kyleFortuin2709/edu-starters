@@ -1,9 +1,7 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
-import { CourseCard, type Course } from "@/components/CourseCard";
-import {
-  FileText,
+import { FileText,
   Calculator,
   CheckCircle2,
   Compass,
@@ -42,24 +40,6 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const previewCourses: Course[] = [
-  {
-    institution: "Example University",
-    name: "BSc Computer Science",
-    summary: "Example: you meet the published entry requirement. This is not a guarantee of admission.",
-    aps: 42,
-    delta: "+5 Above",
-    status: "qualify",
-  },
-  {
-    institution: "Example University",
-    name: "BA Law",
-    summary: "Example: you are below the published requirement. Explore options like a re-mark or extended programme.",
-    aps: 34,
-    delta: "-2 Points",
-    status: "almost",
-  },
-];
 
 const howItWorksSteps = [
   {
@@ -253,45 +233,6 @@ function Index() {
         </div>
       </section>
 
-      {/* Preview */}
-      <section className="mx-auto max-w-7xl px-6 py-24">
-        <div className="mb-12 flex flex-col justify-between gap-4 md:flex-row md:items-end">
-          <div className="max-w-xl">
-            <span className="mb-4 inline-block font-mono text-xs font-bold uppercase tracking-widest text-primary">
-              Preview
-            </span>
-            <h2 className="font-display text-3xl font-semibold leading-tight text-foreground">
-              See how your results could look
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              These are example results only. Real outcomes depend on your marks and the course requirements.
-            </p>
-          </div>
-          <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Example data</div>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-3">
-          {previewCourses.map((course) => (
-            <CourseCard key={course.name} course={course} />
-          ))}
-
-          <div className="flex flex-col items-center justify-center rounded-[2rem] border border-transparent bg-secondary p-8 text-center">
-            <div className="mb-4 grid size-16 place-items-center rounded-full bg-card shadow-sm">
-              <div className="size-8 rounded-lg border-2 border-dashed border-border" />
-            </div>
-            <h3 className="mb-2 font-display text-xl font-semibold text-foreground">Your profile</h3>
-            <p className="px-4 text-sm text-muted-foreground">
-              Sign up to save your results and explore how EduStarter works.
-            </p>
-            <Link
-              to="/signup"
-              className="mt-6 text-sm font-bold text-primary underline underline-offset-4"
-            >
-              Create Profile
-            </Link>
-          </div>
-        </div>
-      </section>
 
       {/* Strong CTA */}
       <section id="cta" className="px-6 py-24">
