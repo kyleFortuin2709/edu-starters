@@ -44,7 +44,28 @@ export function describeCheck(check: RequirementCheck): string {
 /** The requirements standing between the student and this course, in engine order. */
 export function outstandingChecks(course: CourseEligibility): RequirementCheck[] {
   const checks = course.bestSet?.checks ?? [];
-  return checks.filter((c) => c.outcome !== "met");
+  const filtered = checks.filter((c) => c.outcome !== "met");
+  const seen = new Set<string>();
+  return filtered.filter((c) => {
+  const key = `${c.unit}|${c.required ?? "null"}|${c.description}`;
+  if (seen.has(key)) return false;
+  seen.add(key);
+  return true;
+  });
+}
+
+export function describeCheckDetail(check: RequirementCheck): string | null {
+
+  if (check.outcome === "unknown") {
+  return "We don't have a mark for this yet";
+  }
+  if (check.gap != null) {
+  if (check.unit === "percentage") return `Short by ${check.gap}%`;
+  if (check.unit === "aps") return `Short by ${check.gap} APS points`;
+  if (check.unit === "level") return `Short by ${check.gap} achievement levels`;
+  return `Short by ${check.gap} subjects`;
+  }
+  return null;
 }
 
 /** Short single-line reason shown on a card. */

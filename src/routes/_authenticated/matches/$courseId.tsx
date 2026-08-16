@@ -109,6 +109,18 @@ function CourseDetailPage() {
   const checks = eligibility.bestSet?.checks ?? [];
   const unmet = outstandingChecks(eligibility);
   const results = eligibility.apsCalculation?.subjects ?? [];
+  function dedupeChecks(list: RequirementCheck[]) {
+    const seen = new Set<string>();
+    return list.filter((c) => {
+      const key = `${c.unit}|${c.required ?? "null"}|${c.description}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+        });
+  }
+
+const dedupedUnmet = dedupeChecks(unmet);
+const dedupedChecks = dedupeChecks(checks);
 
   return (
     <SiteLayout>
@@ -153,7 +165,7 @@ function CourseDetailPage() {
           description={course?.description ?? null}
         />
 
-        {unmet.length > 0 && (
+        {dedupedUnmet.length > 0 && (
           <div className={cn("mt-6 rounded-[2rem] border bg-card p-8", tone.border)}>
             <h2 className="font-display text-2xl font-semibold">What's standing in the way</h2>
             <ul className="mt-4 space-y-2 text-sm">
@@ -203,12 +215,13 @@ function CourseDetailPage() {
           <h2 className="font-display text-2xl font-semibold">Requirements</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             {eligibility.bestSet
+            
               ? `Evaluated against "${eligibility.bestSet.setName}".`
               : "This course has no published entry requirements yet."}
           </p>
-          {checks.length > 0 ? (
+          {dedupedChecks.length > 0 ? (
             <ul className="mt-6 divide-y divide-border">
-              {checks.map((check) => (
+              {dedupedChecks.map((check) => (
                 <li
                   key={check.ruleId}
                   className="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between"
