@@ -102,7 +102,9 @@ export function ApsCalculatorAiReviewCard({
   return (
     <div
       className={`mt-10 rounded-[2rem] border p-6 md:p-8 ${
-        suggestions.length > 0 ? "border-warning/50 bg-warning/5" : "border-border bg-card"
+        suggestions.some((s) => s.status !== "active")
+          ? "border-warning/50 bg-warning/5"
+          : "border-border bg-card"
       }`}
     >
       <h3 className="font-display text-xl font-semibold">{title}</h3>
