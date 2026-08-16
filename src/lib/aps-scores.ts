@@ -4,6 +4,8 @@
  * can produce different scores.
  */
 import { calculateAps, fetchApsRules, type ApsCalculation } from "@/lib/aps";
+import { calculatorToApsRule } from "@/lib/aps-calculator-rule";
+import { fetchApsCalculators, type ApsCalculator } from "@/lib/aps-calculators-api";
 import { fetchUniversities } from "@/lib/catalogue";
 import { fetchMyResults, fetchSubjects } from "@/lib/results";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,12 +21,13 @@ export async function fetchMyApsByUniversity(userId: string): Promise<{
   hasResults: boolean;
   scores: UniversityApsScore[];
 }> {
-  const [rawResults, subjects, rules, universities, ruleLinks] = await Promise.all([
+  const [rawResults, subjects, rules, universities, ruleLinks, calculators] = await Promise.all([
     fetchMyResults(userId),
     fetchSubjects(),
     fetchApsRules(),
     fetchUniversities(),
     supabase.from("universities").select("id, aps_rule_id"),
+    fetchApsCalculators({ includeArchived: false }).catch(() => [] as ApsCalculator[]),
   ]);
   if (ruleLinks.error) throw ruleLinks.error;
 
@@ -43,9 +46,27 @@ export async function fetchMyApsByUniversity(userId: string): Promise<{
   const ruleByUniversity = new Map((ruleLinks.data ?? []).map((u) => [u.id, u.aps_rule_id]));
   const cache = new Map<string, ApsCalculation>();
 
+  // The institution's active general calculator is the source of truth; the
+  // legacy `universities.aps_rule_id` link is only a fallback.
+  const lifeOrientationId =
+    subjects.find((s) => s.name.toLowerCase().includes("life orientation"))?.id ?? null;
+  const activeGeneralByUniversity = new Map<string, ApsCalculator>();
+  for (const calc of calculators) {
+    if (calc.status !== "active" || calc.scope !== "GENERAL") continue;
+    const existing = activeGeneralByUniversity.get(calc.university_id);
+    if (!existing || calc.updated_at > existing.updated_at) {
+      activeGeneralByUniversity.set(calc.university_id, calc);
+    }
+  }
+
   const scores = universities.map((u) => {
+    const calculator = activeGeneralByUniversity.get(u.id);
     const ruleId = ruleByUniversity.get(u.id) ?? null;
-    const rule = ruleId ? rulesById.get(ruleId) : undefined;
+    const rule = calculator
+      ? calculatorToApsRule(calculator, { lifeOrientationSubjectId: lifeOrientationId })
+      : ruleId
+        ? rulesById.get(ruleId)
+        : undefined;
     let calculation: ApsCalculation | null = null;
     if (rule && results.length > 0) {
       calculation = cache.get(rule.id) ?? calculateAps(rule, results);
