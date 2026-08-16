@@ -233,7 +233,6 @@ function InterestProfilesPage() {
       ) : null}
       {error ? <p className="mt-4 text-sm text-destructive">{error}</p> : null}
 
-
       {loading ? (
         <p className="mt-8 text-sm text-muted-foreground">Loading courses…</p>
       ) : (
