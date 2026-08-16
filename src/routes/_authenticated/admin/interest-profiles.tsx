@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { ActionButton } from "@/components/ActionButton";
+import { GenerationProgress } from "@/components/GenerationProgress";
 import { fetchAdminCourses, type AdminCourse } from "@/lib/admin";
 import { RIASEC_META, RIASEC_ORDER, type RiasecDimension } from "@/lib/career";
 import {
@@ -44,6 +45,13 @@ function InterestProfilesPage() {
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState<Record<RiasecDimension, number> | null>(null);
+  const [progress, setProgress] = useState<{
+    total: number;
+    processed: number;
+    currentBatch: number;
+    totalBatches: number;
+    label: string;
+  } | null>(null);
 
   const load = () =>
     Promise.all([fetchAdminCourses(), fetchCourseRiasecProfiles()])
@@ -98,17 +106,35 @@ function InterestProfilesPage() {
     if (targets.length === 0) return;
     setBusy(true);
     setError("");
+    const totalBatches = Math.ceil(targets.length / BATCH_SIZE);
+    setProgress({
+      total: targets.length,
+      processed: 0,
+      currentBatch: 1,
+      totalBatches,
+      label: `Preparing to generate ${targets.length} profile${targets.length === 1 ? "" : "s"}`,
+    });
     let saved = 0;
     try {
       for (let i = 0; i < targets.length; i += BATCH_SIZE) {
         const batch = targets.slice(i, i + BATCH_SIZE);
-        setStatus(`Generating profiles ${i + 1}–${i + batch.length} of ${targets.length}…`);
+        const batchNumber = Math.floor(i / BATCH_SIZE) + 1;
+        setProgress((prev) =>
+          prev
+            ? {
+                ...prev,
+                currentBatch: batchNumber,
+                label: `Generating profiles ${i + 1}–${i + batch.length} of ${targets.length}`,
+              }
+            : prev,
+        );
         const result = await generate({ data: { courseIds: batch.map((c) => c.id) } });
         if (!result.ok) {
           setError(result.error ?? "Generation failed.");
           break;
         }
         saved += result.saved;
+        setProgress((prev) => (prev ? { ...prev, processed: saved } : prev));
       }
       setStatus(`${saved} profile${saved === 1 ? "" : "s"} saved.`);
       await load();
@@ -116,6 +142,7 @@ function InterestProfilesPage() {
       setError("Generation failed. Please try again.");
     } finally {
       setBusy(false);
+      setProgress(null);
     }
   };
 
@@ -192,7 +219,17 @@ function InterestProfilesPage() {
         </ActionButton>
       </div>
 
-      {status ? <p className="mt-4 text-sm text-muted-foreground">{status}</p> : null}
+      {progress ? (
+        <GenerationProgress
+          total={progress.total}
+          processed={progress.processed}
+          currentBatch={progress.currentBatch}
+          totalBatches={progress.totalBatches}
+          label={progress.label}
+        />
+      ) : status ? (
+        <p className="mt-4 text-sm text-muted-foreground">{status}</p>
+      ) : null}
       {error ? <p className="mt-4 text-sm text-destructive">{error}</p> : null}
 
       {loading ? (
