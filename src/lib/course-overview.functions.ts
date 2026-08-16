@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/lib/supabase-auth.middleware";
+import { parseCareers } from "@/lib/course-overview.shared";
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-3.6-flash";
@@ -129,8 +130,8 @@ export const getCourseOverview = createServerFn({ method: "POST" })
     const careers = parsed.data.careers.slice(0, 5);
 
     // 2. Store it so every later view reads from the database.
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error: writeError } = await supabaseAdmin.from("course_ai_overviews").upsert(
+    const { getSupabaseAdmin } = await import("@/lib/supabase-admin.server");
+    const { error: writeError } = await getSupabaseAdmin().from("course_ai_overviews").upsert(
       {
         course_id: data.courseId,
         summary: parsed.data.summary,
