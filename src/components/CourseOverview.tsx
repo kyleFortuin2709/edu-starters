@@ -3,15 +3,16 @@ import { useServerFn } from "@tanstack/react-start";
 import { FormMessage } from "@/components/FormMessage";
 import { RichText } from "@/components/RichText";
 import { getCourseOverview } from "@/lib/course-overview.functions";
-
-type Career = { title: string; description: string };
+import type { Career } from "@/lib/course-overview.shared";
 
 export function CourseOverview({
+  courseId,
   courseName,
   qualificationName,
   facultyName,
   description,
 }: {
+  courseId: string;
   courseName: string;
   qualificationName: string | null;
   facultyName: string | null;
@@ -27,7 +28,7 @@ export function CourseOverview({
     let active = true;
     setLoading(true);
     setError("");
-    load({ data: { courseName, qualificationName, facultyName, description } })
+    load({ data: { courseId, courseName, qualificationName, facultyName, description } })
       .then((result) => {
         if (!active) return;
         if (result.ok) {
@@ -47,7 +48,7 @@ export function CourseOverview({
       active = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [courseName, qualificationName, facultyName, description]);
+  }, [courseId, courseName, qualificationName, facultyName, description]);
 
   return (
     <>
