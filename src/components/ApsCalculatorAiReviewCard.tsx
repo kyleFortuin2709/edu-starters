@@ -48,8 +48,17 @@ export function ApsCalculatorAiReviewCard({
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    const rows = await fetchApsCalculators({ prospectusId, includeArchived: false });
-    setSuggestions(rows.filter((r) => r.source !== "manual" && r.status !== "active"));
+    const rows = universityId
+      ? await fetchApsCalculators({ universityId, includeArchived: false })
+      : await fetchApsCalculators({ prospectusId, includeArchived: false });
+    // Show every live calculator for this institution (AI-detected and manual)
+    // so admins can activate or archive them from this one place.
+    setSuggestions(
+      [...rows].sort((a, b) => {
+        if (a.status !== b.status) return a.status === "draft" ? -1 : 1;
+        return a.name.localeCompare(b.name);
+      }),
+    );
     if (universityId) setFaculties(await fetchFaculties(universityId));
   }, [prospectusId, universityId]);
 
@@ -99,10 +108,10 @@ export function ApsCalculatorAiReviewCard({
       <h3 className="font-display text-xl font-semibold">{title}</h3>
       <p className="mt-1 text-sm text-muted-foreground">
         {suggestions.length > 0
-          ? `The extraction found ${suggestions.length} possible APS rule${
+          ? `${suggestions.length} calculator${
               suggestions.length === 1 ? "" : "s"
-            } in this prospectus. Nothing is used until you accept it and confirm.`
-          : "The extraction didn't find any APS rules in this prospectus. You can add a calculator by hand."}
+            } for this institution. Nothing is used until a calculator is active.`
+          : "No APS calculators yet for this institution. You can add one by hand."}
       </p>
 
       <ul className="mt-6 space-y-4">
@@ -133,8 +142,15 @@ export function ApsCalculatorAiReviewCard({
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
+                    <StatusPill tone={s.status === "active" ? "active" : "draft"}>
+                      {s.status === "active" ? "Active" : "Draft"}
+                    </StatusPill>
                     <StatusPill tone="demo">
-                      {s.source === "ai_suggested" ? "AI suggested" : "AI edited"}
+                      {s.source === "manual"
+                        ? "Added by hand"
+                        : s.source === "ai_suggested"
+                          ? "AI suggested"
+                          : "AI edited"}
                     </StatusPill>
                     {s.confidence != null && (
                       <StatusPill tone={s.confidence >= 0.7 ? "active" : "draft"}>
@@ -209,9 +225,11 @@ export function ApsCalculatorAiReviewCard({
                   </div>
                 ) : (
                   <div className="mt-4 flex flex-wrap gap-2">
-                    <ActionButton type="button" size="sm" onClick={() => setConfirmId(s.id)}>
-                      Accept
-                    </ActionButton>
+                    {s.status !== "active" && (
+                      <ActionButton type="button" size="sm" onClick={() => setConfirmId(s.id)}>
+                        Activate
+                      </ActionButton>
+                    )}
                     <ActionButton
                       type="button"
                       variant="outline"
@@ -227,10 +245,10 @@ export function ApsCalculatorAiReviewCard({
                       size="sm"
                       disabled={busyId === s.id}
                       onClick={() =>
-                        run(s.id, () => archiveApsCalculator(s.id), `“${s.name}” rejected.`)
+                        run(s.id, () => archiveApsCalculator(s.id), `“${s.name}” archived.`)
                       }
                     >
-                      Reject
+                      Archive
                     </ActionButton>
                   </div>
                 )}
