@@ -22,6 +22,7 @@ export const getCourseOverview = createServerFn({ method: "POST" })
   .inputValidator((data) =>
     z
       .object({
+        courseId: z.string().uuid(),
         courseName: z.string().min(1).max(300),
         qualificationName: z.string().max(300).nullable().default(null),
         facultyName: z.string().max(300).nullable().default(null),
@@ -29,7 +30,20 @@ export const getCourseOverview = createServerFn({ method: "POST" })
       })
       .parse(data),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    // 1. Already generated for this course? Never call the model twice.
+    const { data: cached, error: cacheError } = await context.supabase
+      .from("course_ai_overviews")
+      .select("summary, careers")
+      .eq("course_id", data.courseId)
+      .maybeSingle();
+    if (cacheError) console.error("course_ai_overviews read failed", cacheError);
+
+    const cachedCareers = parseCareers(cached?.careers);
+    if (cached?.summary && cachedCareers.length > 0) {
+      return { ok: true as const, summary: cached.summary, careers: cachedCareers };
+    }
+
     const apiKey = process.env["LOVABLE_API_KEY"];
     if (!apiKey) {
       return { ok: false as const, error: "The AI overview is not configured yet." };
@@ -112,9 +126,25 @@ export const getCourseOverview = createServerFn({ method: "POST" })
       return { ok: false as const, error: "The AI service returned an unexpected answer." };
     }
 
+    const careers = parsed.data.careers.slice(0, 5);
+
+    // 2. Store it so every later view reads from the database.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error: writeError } = await supabaseAdmin.from("course_ai_overviews").upsert(
+      {
+        course_id: data.courseId,
+        summary: parsed.data.summary,
+        careers,
+        model: MODEL,
+        generated_at: new Date().toISOString(),
+      },
+      { onConflict: "course_id" },
+    );
+    if (writeError) console.error("course_ai_overviews write failed", writeError);
+
     return {
       ok: true as const,
       summary: parsed.data.summary,
-      careers: parsed.data.careers.slice(0, 5),
+      careers,
     };
   });
