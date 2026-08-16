@@ -159,6 +159,7 @@ const dedupedChecks = dedupeChecks(checks);
         </header>
 
         <CourseOverview
+          courseId={eligibility.courseId}
           courseName={eligibility.courseName}
           qualificationName={eligibility.qualificationName ?? null}
           facultyName={eligibility.facultyName ?? null}
