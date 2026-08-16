@@ -53,7 +53,6 @@ function InterestProfilesPage() {
     label: string;
   } | null>(null);
 
-
   const load = () =>
     Promise.all([fetchAdminCourses(), fetchCourseRiasecProfiles()])
       .then(([c, p]) => {
