@@ -242,6 +242,12 @@ export type StagedCourse = {
     extracted_at?: string;
     confidence?: "high" | "medium" | "low";
     review_flags?: string[];
+    /** Legacy shape kept for older extractions. */
+    subject_requirements?: {
+      subject: string;
+      minimum?: string | null;
+      note?: string | null;
+    }[];
     requirement_rules?:{
       rule_type:
         | "min_aps"
