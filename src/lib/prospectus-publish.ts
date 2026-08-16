@@ -340,31 +340,105 @@ export async function publishStagedCourse(s: StagedCourse): Promise<PublishResul
     });
   }
 
-  const extracted = s.extracted_payload?.subject_requirements ?? [];
-  extracted.forEach((req, index) => {
-    const subject = matchSubject(req.subject, subjectRows);
-    if (!subject) {
-      warnings.push(`"${req.subject}" doesn't match a known NSC subject and was not published as a rule.`);
-      return;
-    }
-    const parsed = parseMinimum(req.minimum);
-    if (parsed.kind === "unknown") {
+  const extracted = s.extracted_payload?.requirement_rules ?? [];
+
+
+  extracted.forEach((rule, index) => {
+    const ruleType = String(rule?.rule_type ?? "").trim();
+
+    if (!ruleType) return;
+
+    const subjectName =
+      typeof rule?.subject_name === "string"
+        ? rule.subject_name.trim()
+        : null;
+
+    const subject = subjectName
+      ? matchSubject(subjectName, subjectRows)
+      : null;
+
+    if (subjectName && !subject) {
       warnings.push(
-        `No clear minimum for ${subject.name} ("${req.minimum ?? "none stated"}") — it was not published as a rule.`,
+        `"${subjectName}" doesn't match a known NSC subject and was not published as a rule.`,
       );
       return;
     }
-    rules.push({
-      requirement_set_id: set.id,
-      rule_type: parsed.kind === "percentage" ? "subject_min_percentage" : "subject_min_level",
-      subject_id: subject.id,
-      ...(parsed.kind === "percentage"
-        ? { min_percentage: parsed.value }
-        : { min_achievement_level: parsed.value }),
-      is_required: true,
-      description: req.note,
-      sort_order: index + 1,
-    });
+
+    const value =
+      typeof rule?.value === "number"
+        ? rule.value
+        : Number.isFinite(Number(rule?.value))
+          ? Number(rule.value)
+          : null;
+
+    switch (ruleType) {
+      case "min_aps":
+        if (value != null) {
+          rules.push({
+            requirement_set_id: set.id,
+            rule_type: "min_aps",
+            min_aps: value,
+            is_required: true,
+            description: `Minimum APS of ${value}`,
+            sort_order: index,
+          });
+        }
+        break;
+
+      case "subject_min_percentage":
+        if (subject && value != null) {
+          rules.push({
+            requirement_set_id: set.id,
+            rule_type: "subject_min_percentage",
+            subject_id: subject.id,
+            min_percentage: value,
+            is_required: true,
+            description: `${subject.name} minimum ${value}%`,
+            sort_order: index,
+          });
+        }
+        break;
+
+      case "subject_min_level":
+        if (subject && value != null) {
+          rules.push({
+            requirement_set_id: set.id,
+            rule_type: "subject_min_level",
+            subject_id: subject.id,
+            min_achievement_level: value,
+            is_required: true,
+            description: `${subject.name} minimum achievement level ${value}`,
+            sort_order: index,
+          });
+        }
+        break;
+
+      case "subject_required":
+        if (subject) {
+          rules.push({
+            requirement_set_id: set.id,
+            rule_type: "subject_required",
+            subject_id: subject.id,
+            is_required: true,
+            description: `${subject.name} is required`,
+            sort_order: index,
+          });
+        }
+        break;
+
+      case "subject_not_accepted":
+        if (subject) {
+          rules.push({
+            requirement_set_id: set.id,
+            rule_type: "subject_not_accepted",
+            subject_id: subject.id,
+            is_required: true,
+            description: `${subject.name} is not accepted`,
+            sort_order: index,
+          });
+        }
+        break;
+    }
   });
 
   if (rules.length > 0) {

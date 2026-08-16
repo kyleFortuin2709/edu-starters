@@ -242,7 +242,16 @@ export type StagedCourse = {
     extracted_at?: string;
     confidence?: "high" | "medium" | "low";
     review_flags?: string[];
-    subject_requirements?: { subject: string; minimum: string | null; note: string | null }[];
+    requirement_rules?:{
+      rule_type:
+        | "min_aps"
+        | "subject_min_level"
+        | "subject_min_percentage"
+        | "subject_required"
+        | "subject_not_accepted";
+      subject_name: string | null;
+      value: number | null;
+    }[];
   } | null;
   created_at: string;
   updated_at: string;
