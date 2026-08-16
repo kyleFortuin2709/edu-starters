@@ -2,26 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/lib/supabase-auth.middleware";
 import { getSupabaseAdmin } from "@/lib/supabase-admin.server";
-
-const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
-const MODEL = "google/gemini-3.6-flash";
-
-const SYSTEM_PROMPT = `You are a career-guidance analyst mapping South African tertiary courses onto the RIASEC (Holland Code) interest model.
-
-For every course you are given, estimate how strongly the day-to-day study and work of that course draws on each of the six interest dimensions:
-- realistic: hands-on, practical, technical, outdoor, machines, building
-- investigative: research, analysis, science, problem solving
-- artistic: creative, expressive, design, writing, performance
-- social: teaching, helping, healing, working with people
-- enterprising: leading, selling, persuading, business, entrepreneurship
-- conventional: structure, data, records, accuracy, administration
-
-Rules:
-- Give each dimension a whole number 0-100. The six numbers for a course must add up to 100.
-- Be decisive: a typical course has one or two clearly dominant dimensions.
-- "notes" must be one short sentence explaining the profile in plain English.
-- Return one entry per course, echoing the exact course_id you were given.
-- Respond with JSON only, no markdown.`;
+import { getRequest } from "@tanstack/react-start/server";
+import { getSupabasePublishableKey, getSupabaseUrl } from "@/lib/supabase-env";
 
 const responseSchema = z.object({
   courses: z.array(
@@ -64,9 +46,10 @@ export const generateCourseRiasecProfiles = createServerFn({ method: "POST" })
     });
     if (!isAdmin) throw new Error("Forbidden");
 
-    const apiKey = process.env["LOVABLE_API_KEY"];
-    if (!apiKey) {
-      return { ok: false as const, error: "The AI service is not configured yet.", saved: 0 };
+    const url = getSupabaseUrl();
+    const apiKey = getSupabasePublishableKey();
+    if (!url) {
+      return { ok: false as const, error: "The backend connection is not configured.", saved: 0 };
     }
 
     const admin = getSupabaseAdmin();
@@ -81,94 +64,46 @@ export const generateCourseRiasecProfiles = createServerFn({ method: "POST" })
       return { ok: false as const, error: "No matching courses were found.", saved: 0 };
     }
 
-    const prompt = courses
-      .map((c: any) =>
-        [
-          `course_id: ${c.id}`,
-          `name: ${c.name}`,
-          `qualification: ${c.qualification_types?.name ?? "unknown"}`,
-          `faculty: ${c.faculties?.name ?? "unknown"}`,
-          `description: ${(c.description ?? "not available").slice(0, 600)}`,
-        ].join("\n"),
-      )
-      .join("\n---\n");
+    const courseInputs = courses.map((c: any) => ({
+      course_id: c.id as string,
+      name: c.name as string,
+      qualification: c.qualification_types?.name ?? null,
+      faculty: c.faculties?.name ?? null,
+      description: (c.description ?? "").slice(0, 600) || null,
+    }));
+
+    const token = getRequest()?.headers?.get("authorization") ?? "";
 
     let response: Response;
     try {
-      response = await fetch(GATEWAY_URL, {
+      response = await fetch(`${url}/functions/v1/course-interests`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-        body: JSON.stringify({
-          model: MODEL,
-          messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            { role: "user", content: prompt },
-          ],
-          response_format: {
-            type: "json_schema",
-            json_schema: {
-              name: "course_riasec_profiles",
-              strict: true,
-              schema: {
-                type: "object",
-                additionalProperties: false,
-                properties: {
-                  courses: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      additionalProperties: false,
-                      properties: {
-                        course_id: { type: "string" },
-                        realistic: { type: "number" },
-                        investigative: { type: "number" },
-                        artistic: { type: "number" },
-                        social: { type: "number" },
-                        enterprising: { type: "number" },
-                        conventional: { type: "number" },
-                        notes: { type: "string" },
-                      },
-                      required: [
-                        "course_id",
-                        "realistic",
-                        "investigative",
-                        "artistic",
-                        "social",
-                        "enterprising",
-                        "conventional",
-                        "notes",
-                      ],
-                    },
-                  },
-                },
-                required: ["courses"],
-              },
-            },
-          },
-        }),
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: token } : {}),
+          ...(apiKey ? { apikey: apiKey } : {}),
+        },
+        body: JSON.stringify({ courses: courseInputs }),
       });
     } catch {
       return { ok: false as const, error: "We couldn't reach the AI service.", saved: 0 };
     }
 
+    const raw = await response.text();
     if (response.status === 429) {
       return { ok: false as const, error: "The AI service is busy. Try again shortly.", saved: 0 };
     }
     if (!response.ok) {
+      console.error("course-interests failed", response.status, raw.slice(0, 500));
       return { ok: false as const, error: "The AI service returned an error.", saved: 0 };
     }
-
-    const payload = (await response.json().catch(() => null)) as
-      | { choices?: { message?: { content?: string } }[] }
-      | null;
-    const raw = payload?.choices?.[0]?.message?.content?.trim();
     if (!raw) {
       return { ok: false as const, error: "The AI service returned nothing.", saved: 0 };
     }
 
     let parsed;
     try {
-      parsed = responseSchema.safeParse(JSON.parse(raw.replace(/^```json\s*|\s*```$/g, "")));
+      parsed = responseSchema.safeParse(JSON.parse(raw));
     } catch {
       return { ok: false as const, error: "The AI service returned invalid JSON.", saved: 0 };
     }
