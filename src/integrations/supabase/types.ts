@@ -202,6 +202,44 @@ export type Database = {
           },
         ]
       }
+      course_ai_overviews: {
+        Row: {
+          careers: Json
+          course_id: string
+          created_at: string
+          generated_at: string
+          model: string | null
+          summary: string
+          updated_at: string
+        }
+        Insert: {
+          careers?: Json
+          course_id: string
+          created_at?: string
+          generated_at?: string
+          model?: string | null
+          summary: string
+          updated_at?: string
+        }
+        Update: {
+          careers?: Json
+          course_id?: string
+          created_at?: string
+          generated_at?: string
+          model?: string | null
+          summary?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_ai_overviews_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: true
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_requirement_rules: {
         Row: {
           created_at: string
