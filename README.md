@@ -1,78 +1,76 @@
-# Study Navigator
+EduStarter
+AI-powered university and career guidance for South African learners
 
-Create a modern, responsive web application called EduStarter.
+EduStarter helps young South Africans make better-informed decisions about what to study — by connecting their interests, eligibility and potential career paths in one place.
 
-EduStarter is a South African tertiary-education platform that will eventually help students understand which university courses they may qualify for based on their NSC results.
+Choosing what to study is often framed as a simple question:
 
-For this first step, focus only on the visual and structural foundation.
+“What do you want to study?”
 
-Create:
+But the more important question is:
 
-A polished landing page
+“What do you want to do?”
 
-A basic login page
+EduStarter uses AI to help bridge that gap.
 
-A basic sign-up page
+🚀 What is EduStarter?
 
-A protected-dashboard placeholder
+EduStarter is a university and career guidance platform built to help learners navigate the transition from school to higher education and employment.
 
-A consistent navigation/header
+Instead of requiring students to search through university prospectuses, course pages and career information themselves, EduStarter brings this information together and uses AI to make it easier to understand and act on.
 
-A reusable component structure
+The platform can help learners:
 
-Responsive layouts for mobile and desktop
+Explore university courses
+Understand admission and eligibility requirements
+Discover potential career opportunities
+Ask questions through an AI assistant
+Turn academic information into practical career guidance
 
-UX/UI direction
+The goal is simple:
 
-The product should feel:
+Give learners a better chance of choosing a path that fits them — before they commit time and money to the wrong one.
 
-Modern
+🤖 How AI is Used
 
-Simple
+AI is not simply added as a chatbot. It is integrated into the underlying workflow of the platform.
 
-Student-friendly
+Prospectus extraction
 
-Trustworthy
+University prospectuses contain large amounts of information that can be difficult for learners to navigate.
 
-Encouraging
+Gemini is used to extract and structure information from these documents, including:
 
-Extremely easy to navigate
+Courses
+Admission requirements
+Subject requirements
+APS requirements
+Course descriptions
+Other relevant university information
 
-Use clear typography, generous spacing, strong visual hierarchy, accessible contrast, clean cards, obvious primary actions, and subtle interactions.
+This structured information can then be stored and reused rather than repeatedly processing the same documents.
 
-Avoid an overly corporate or complicated aesthetic.
+Course & career guidance
 
-The eventual product will display university courses as cards and organize results into You Qualify, Almost Qualify, and Don't Qualify, so establish a visual system that can naturally support those experiences later.
+AI is also used to generate useful context around courses, including:
 
-Architecture
+What a course involves
+Potential career opportunities
+Connections between study choices and possible careers
+Conversational guidance
 
-Use React + TypeScript + Tailwind CSS with reusable components.
+Learners can interact with an AI assistant to ask questions and explore their options conversationally.
 
-Keep the structure clean and scalable so we can add Supabase authentication, student results, course data, eligibility logic, AI features, and an admin interface in later steps.
+🧠 Technology Stack
+Technology	Role
+Lovable	Rapid application development and prototyping
+Supabase	Database, backend infrastructure and Edge Functions
+Gemini	AI extraction, generation and conversational guidance
 
-Do not implement Supabase, AI, the recommendation engine, course data, or the admin system yet.
+🏗️ Project Status
 
-The goal is to create a polished foundation that we can build on incrementally.
+Hackathon Prototype
 
-This project was built with [Lovable](https://lovable.dev).
+The current version demonstrates the core concept using university data, AI-powered information extraction, course and career guidance, and conversational interaction.
 
-**Live app**: https://edu-starters.lovable.app
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/b188c554-0600-45c3-a25b-e83b8f9eb5cd).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
-```
+The architecture is designed to support expansion to additional universities and larger learner populations.
