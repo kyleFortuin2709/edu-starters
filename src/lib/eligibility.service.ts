@@ -4,6 +4,8 @@
  * engine. A future results dashboard only needs to call `evaluateMyEligibility`.
  */
 import { calculateAps, fetchApsRules, type ApsCalculation } from "@/lib/aps";
+import { calculatorToApsRule } from "@/lib/aps-calculator-rule";
+import { fetchApsCalculators, type ApsCalculator } from "@/lib/aps-calculators-api";
 import { fetchCoursesWithRequirements, type CourseWithRequirements } from "@/lib/catalogue";
 import {
   evaluateCourses,
@@ -33,14 +35,16 @@ export async function evaluateMyEligibility(
   userId: string,
   options?: { provinceId?: string; universityId?: string },
 ): Promise<EligibilityReport> {
-  const [profile, rawResults, subjects, rules, universityRules, courses] = await Promise.all([
+  const [profile, rawResults, subjects, rules, universityRules, courses, calculators] =
+    await Promise.all([
     fetchMyProfile(userId),
     fetchMyResults(userId),
     fetchSubjects(),
     fetchApsRules(),
     fetchUniversityRuleMap(),
     fetchCoursesWithRequirements(options),
-  ]);
+      fetchApsCalculators({ includeArchived: false }).catch(() => [] as ApsCalculator[]),
+    ]);
 
   const subjectNames = new Map(subjects.map((s) => [s.id, s.name]));
   const results: StudentResultInput[] = rawResults
@@ -54,11 +58,36 @@ export async function evaluateMyEligibility(
   const rulesById = new Map(rules.map((r) => [r.id, r]));
   const apsByRule = new Map<string, ApsCalculation>();
   const apsByUniversity = new Map<string, ApsCalculation>();
-  for (const [universityId, ruleId] of universityRules) {
-    if (!ruleId) continue;
-    const rule = rulesById.get(ruleId);
+
+  // The institution's active general calculator wins; the legacy
+  // `universities.aps_rule_id` link is only a fallback. Keeps this page in sync
+  // with the APS scores shown on the profile page.
+  const lifeOrientationId =
+    subjects.find((s) => s.name.toLowerCase().includes("life orientation"))?.id ?? null;
+  const activeGeneralByUniversity = new Map<string, ApsCalculator>();
+  for (const calc of calculators) {
+    if (calc.status !== "active" || calc.scope !== "GENERAL") continue;
+    const existing = activeGeneralByUniversity.get(calc.university_id);
+    if (!existing || calc.updated_at > existing.updated_at) {
+      activeGeneralByUniversity.set(calc.university_id, calc);
+    }
+  }
+
+  const universityIds = new Set<string>([
+    ...universityRules.keys(),
+    ...activeGeneralByUniversity.keys(),
+  ]);
+
+  for (const universityId of universityIds) {
+    const calculator = activeGeneralByUniversity.get(universityId);
+    const ruleId = universityRules.get(universityId) ?? null;
+    const rule = calculator
+      ? calculatorToApsRule(calculator, { lifeOrientationSubjectId: lifeOrientationId })
+      : ruleId
+        ? rulesById.get(ruleId)
+        : undefined;
     if (!rule) continue;
-    let calculation = apsByRule.get(ruleId);
+    let calculation = apsByRule.get(rule.id);
     if (!calculation) {
       calculation = calculateAps(
         rule,
@@ -68,7 +97,7 @@ export async function evaluateMyEligibility(
           ...(r.subjectName ? { subjectName: r.subjectName } : {}),
         })),
       );
-      apsByRule.set(ruleId, calculation);
+      apsByRule.set(rule.id, calculation);
     }
     apsByUniversity.set(universityId, calculation);
   }
